@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Agent } from '../types';
+import { useState, useEffect } from 'react';
+import { Agent, OpenRouterModel } from '../types';
 import './AgentForm.css';
 
 interface AgentFormProps {
@@ -8,16 +8,29 @@ interface AgentFormProps {
 }
 
 const COLORS = ['#4caf50', '#2196f3', '#ff9800', '#e91e63', '#9c27b0', '#00bcd4'];
+const MODELS_STORAGE = 'selected_models';
 
 export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
   const [name, setName] = useState('');
-  const [model, setModel] = useState('openai/gpt-3.5-turbo');
+  const [model, setModel] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('You are a helpful assistant.');
   const [color, setColor] = useState(COLORS[0]);
+  const [availableModels, setAvailableModels] = useState<OpenRouterModel[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(MODELS_STORAGE);
+    if (stored) {
+      const models = JSON.parse(stored) as OpenRouterModel[];
+      setAvailableModels(models);
+      if (models.length > 0 && !model) {
+        setModel(models[0].id);
+      }
+    }
+  }, [model]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !model) return;
     onSubmit({ name, model, systemPrompt, color });
   };
 
@@ -35,12 +48,19 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
       </div>
       <div className="agent-form-field">
         <label>Model</label>
-        <input
-          type="text"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          placeholder="openai/gpt-4o"
-        />
+        {availableModels.length > 0 ? (
+          <select value={model} onChange={(e) => setModel(e.target.value)}>
+            {availableModels.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.id}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div className="no-models-hint">
+            No models selected. Go to Settings to select models.
+          </div>
+        )}
       </div>
       <div className="agent-form-field">
         <label>System Prompt</label>
@@ -68,7 +88,7 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
         <button type="button" className="btn-cancel" onClick={onCancel}>
           Cancel
         </button>
-        <button type="submit" className="btn-submit">
+        <button type="submit" className="btn-submit" disabled={!model}>
           Add
         </button>
       </div>
