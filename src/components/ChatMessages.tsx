@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { Message, Agent } from '../types';
+import { Message } from '../types';
+import { ChatAgent } from '../agents/ChatAgent';
 import './ChatMessages.css';
 
 interface ChatMessagesProps {
   messages: Message[];
-  agents: Agent[];
+  agents: ChatAgent[];
 }
 
 export function ChatMessages({ messages, agents }: ChatMessagesProps) {
