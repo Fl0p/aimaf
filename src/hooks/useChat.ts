@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Message, AgentConfig } from '../types';
-import { ChatAgent, ChatMessage } from '../agents/ChatAgent';
+import { Message, AgentConfig, ChatMessage } from '../types';
+import { ChatAgent } from '../agents/ChatAgent';
 
 const STORAGE_KEY = 'openrouter_api_key';
 

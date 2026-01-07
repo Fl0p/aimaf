@@ -1,19 +1,20 @@
-import { generateText, ModelMessage } from 'ai';
+import { ToolLoopAgent, ModelMessage, ToolSet } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { AgentConfig } from '../types';
-
-export type ChatMessage = {
-  role: 'user' | 'assistant';
-  content: string;
-};
+import { AgentConfig, ChatMessage } from '../types';
 
 export class ChatAgent {
   private config: AgentConfig;
-  private openrouter: ReturnType<typeof createOpenRouter>;
+  private agent: ToolLoopAgent<never, ToolSet>;
 
   constructor(config: AgentConfig, apiKey: string) {
     this.config = config;
-    this.openrouter = createOpenRouter({ apiKey });
+    const openrouter = createOpenRouter({ apiKey });
+
+    this.agent = new ToolLoopAgent({
+      model: openrouter(this.config.model),
+      instructions: this.config.systemPrompt,
+      tools: {},
+    });
   }
 
   async generate(messages: ChatMessage[]): Promise<string> {
@@ -22,11 +23,7 @@ export class ChatAgent {
       content: m.content,
     }));
 
-    const result = await generateText({
-      model: this.openrouter(this.config.model),
-      system: this.config.systemPrompt,
-      messages: modelMessages,
-    });
+    const result = await this.agent.generate({ messages: modelMessages });
     return result.text;
   }
 
