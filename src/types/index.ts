@@ -14,3 +14,8 @@ export interface Agent {
   systemPrompt: string;
   color: string;
 }
+
+export interface OpenRouterModel {
+  id: string;
+  name: string;
+}

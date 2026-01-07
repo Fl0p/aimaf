@@ -68,3 +68,61 @@
   background-color: #f44336;
   color: white;
 }
+
+.settings-section + .settings-section {
+  margin-top: 32px;
+}
+
+.selected-models {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.selected-model-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #e3f2fd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.selected-model-tag button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  color: #666;
+  font-size: 14px;
+}
+
+.selected-model-tag button:hover {
+  color: #f44336;
+}
+
+.models-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.model-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  cursor: pointer;
+}
+
+.model-item:hover {
+  background: #f5f5f5;
+}
+
+.model-id {
+  font-size: 13px;
+  font-family: monospace;
+}
