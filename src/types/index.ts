@@ -19,3 +19,8 @@ export interface OpenRouterModel {
   id: string;
   name: string;
 }
+
+export type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
