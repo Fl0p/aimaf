@@ -12,6 +12,41 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/gateway@npm:3.0.10":
+  version: 3.0.10
+  resolution: "@ai-sdk/gateway@npm:3.0.10"
+  dependencies:
+    "@ai-sdk/provider": "npm:3.0.2"
+    "@ai-sdk/provider-utils": "npm:4.0.4"
+    "@vercel/oidc": "npm:3.1.0"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10c0/239f8dfbc51861c907d66621abd622bbeb540b44822b217ef11854345da472c4f242130c73858a9a1b43dad427e31cd97c28694d079bc459299261c446a5c716
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/provider-utils@npm:4.0.4":
+  version: 4.0.4
+  resolution: "@ai-sdk/provider-utils@npm:4.0.4"
+  dependencies:
+    "@ai-sdk/provider": "npm:3.0.2"
+    "@standard-schema/spec": "npm:^1.1.0"
+    eventsource-parser: "npm:^3.0.6"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10c0/22d4772e5cbbb764f2508e4b3055e84346435a9394749567dc284522e65201b17a66e137d4b0a9d5094c776252f940a02489f146c7d2ca4b34d71c01b46cc8c9
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/provider@npm:3.0.2":
+  version: 3.0.2
+  resolution: "@ai-sdk/provider@npm:3.0.2"
+  dependencies:
+    json-schema: "npm:^0.4.0"
+  checksum: 10c0/31617f93a78af9c96e4ef7938d168a55da32095d62aee4e6ad1ee4976738da11d7f948d930fc79c396ac38ace99e67e58f52a281cb925de40d365986c635a8ed
+  languageName: node
+  linkType: hard
+
 "@alloc/quick-lru@npm:^5.2.0":
   version: 5.2.0
   resolution: "@alloc/quick-lru@npm:5.2.0"
@@ -2232,6 +2267,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@openrouter/ai-sdk-provider@npm:^1.5.4":
+  version: 1.5.4
+  resolution: "@openrouter/ai-sdk-provider@npm:1.5.4"
+  dependencies:
+    "@openrouter/sdk": "npm:^0.1.27"
+  peerDependencies:
+    ai: ^5.0.0
+    zod: ^3.24.1 || ^v4
+  checksum: 10c0/6360a779a3b13de5df0fca9ff3dda4b18cce2652c6c0db26a3f1c1f558f5bb3f75b45d6553c14d5eed4ab1fac7fe4a4bd577195ff6652dbf5a5a14378460bbd2
+  languageName: node
+  linkType: hard
+
+"@openrouter/sdk@npm:^0.1.27":
+  version: 0.1.27
+  resolution: "@openrouter/sdk@npm:0.1.27"
+  dependencies:
+    zod: "npm:^3.25.0 || ^4.0.0"
+  checksum: 10c0/c63972851b4544a6585babacb2909b8af529444c6319e0a98b8e219f75295a25d433ba1978f24c0252fbb41ac2471bf209c2728649bf0c42b7a722c3868e267e
+  languageName: node
+  linkType: hard
+
+"@opentelemetry/api@npm:1.9.0":
+  version: 1.9.0
+  resolution: "@opentelemetry/api@npm:1.9.0"
+  checksum: 10c0/9aae2fe6e8a3a3eeb6c1fdef78e1939cf05a0f37f8a4fae4d6bf2e09eb1e06f966ece85805626e01ba5fab48072b94f19b835449e58b6d26720ee19a58298add
+  languageName: node
+  linkType: hard
+
 "@pmmmwh/react-refresh-webpack-plugin@npm:^0.5.3":
   version: 0.5.17
   resolution: "@pmmmwh/react-refresh-webpack-plugin@npm:0.5.17"
@@ -2363,6 +2426,13 @@ __metadata:
   dependencies:
     "@sinonjs/commons": "npm:^1.7.0"
   checksum: 10c0/d6b795f9ddaf044daf184c151555ca557ccd23636f2ee3d2f76a9d128329f81fc1aac412f6f67239ab92cb9390aad9955b71df93cf4bd442c68b1f341e381ab6
+  languageName: node
+  linkType: hard
+
+"@standard-schema/spec@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@standard-schema/spec@npm:1.1.0"
+  checksum: 10c0/d90f55acde4b2deb983529c87e8025fa693de1a5e8b49ecc6eb84d1fd96328add0e03d7d551442156c7432fd78165b2c26ff561b970a9a881f046abb78d6a526
   languageName: node
   linkType: hard
 
@@ -3195,6 +3265,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/oidc@npm:3.1.0":
+  version: 3.1.0
+  resolution: "@vercel/oidc@npm:3.1.0"
+  checksum: 10c0/f57278ed4b4c022c7ca85e8baa5f9bdb2623397abfa0e5dbfd75de283c8e5dc534d64dac1364b5ad8c96d00eb2d469886e6f7b640f6f195def5766950ad8ce71
+  languageName: node
+  linkType: hard
+
 "@webassemblyjs/ast@npm:1.14.1, @webassemblyjs/ast@npm:^1.14.1":
   version: 1.14.1
   resolution: "@webassemblyjs/ast@npm:1.14.1"
@@ -3477,10 +3554,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ai@npm:^6.0.19":
+  version: 6.0.19
+  resolution: "ai@npm:6.0.19"
+  dependencies:
+    "@ai-sdk/gateway": "npm:3.0.10"
+    "@ai-sdk/provider": "npm:3.0.2"
+    "@ai-sdk/provider-utils": "npm:4.0.4"
+    "@opentelemetry/api": "npm:1.9.0"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10c0/e7bc3613dcc2adda959b30414357c6e3fb613f5dfac592a9f2559a4b9f0b8d459405eb963726dc1c795132a7aefced0fe7961f529ecdd3cc5adcda68098a0b1f
+  languageName: node
+  linkType: hard
+
 "aimaf@workspace:.":
   version: 0.0.0-use.local
   resolution: "aimaf@workspace:."
   dependencies:
+    "@openrouter/ai-sdk-provider": "npm:^1.5.4"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^16.1.0"
@@ -3489,6 +3581,7 @@ __metadata:
     "@types/node": "npm:^16.7.13"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
+    ai: "npm:^6.0.19"
     react: "npm:^19.2.3"
     react-dom: "npm:^19.2.3"
     react-router-dom: "npm:^7.11.0"
@@ -3496,6 +3589,7 @@ __metadata:
     serve: "npm:^14.2.5"
     typescript: "npm:^4.4.2"
     web-vitals: "npm:^2.1.0"
+    zod: "npm:^4.3.5"
   languageName: unknown
   linkType: soft
 
@@ -6319,6 +6413,13 @@ __metadata:
   version: 3.3.0
   resolution: "events@npm:3.3.0"
   checksum: 10c0/d6b6f2adbccbcda74ddbab52ed07db727ef52e31a61ed26db9feb7dc62af7fc8e060defa65e5f8af9449b86b52cc1a1f6a79f2eafcf4e62add2b7a1fa4a432f6
+  languageName: node
+  linkType: hard
+
+"eventsource-parser@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "eventsource-parser@npm:3.0.6"
+  checksum: 10c0/70b8ccec7dac767ef2eca43f355e0979e70415701691382a042a2df8d6a68da6c2fca35363669821f3da876d29c02abe9b232964637c1b6635c940df05ada78a
   languageName: node
   linkType: hard
 
@@ -13998,5 +14099,12 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: 10c0/dceb44c28578b31641e13695d200d34ec4ab3966a5729814d5445b194933c096b7ced71494ce53a0e8820685d1d010df8b2422e5bf2cdea7e469d97ffbea306f
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.3.5":
+  version: 4.3.5
+  resolution: "zod@npm:4.3.5"
+  checksum: 10c0/5a2db7e59177a3d7e202543f5136cb87b97b047b77c8a3d824098d3fa8b80d3aa40a0a5f296965c3b82dfdccdd05dbbfacce91347f16a39c675680fd7b1ab109
   languageName: node
   linkType: hard
