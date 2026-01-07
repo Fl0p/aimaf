@@ -1,3 +1,46 @@
 .settings {
   padding: 24px;
+  max-width: 600px;
+}
+
+.settings h1 {
+  margin-bottom: 24px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-label {
+  font-weight: 500;
+}
+
+.settings-input {
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: #61dafb;
+}
+
+.settings-button {
+  align-self: flex-start;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #61dafb;
+  color: #282c34;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.settings-button:hover {
+  background-color: #4fa8c7;
 }
