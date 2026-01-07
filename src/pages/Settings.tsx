@@ -107,11 +107,13 @@ export function Settings() {
     localStorage.setItem(MODELS_STORAGE, JSON.stringify(newSelected));
   };
 
-  const filteredModels = allModels.filter(
-    (m) =>
-      m.id.toLowerCase().includes(search.toLowerCase()) ||
-      m.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredModels = allModels
+    .filter(
+      (m) =>
+        m.id.toLowerCase().includes(search.toLowerCase()) ||
+        m.name.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   return (
     <div className="settings">
