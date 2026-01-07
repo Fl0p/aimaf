@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { Agent } from '../types';
+import { AgentConfig } from '../types';
+import { ChatAgent } from '../agents/ChatAgent';
 import { AgentForm } from './AgentForm';
 import './AgentPanel.css';
 
 interface AgentPanelProps {
-  agents: Agent[];
+  agents: ChatAgent[];
   isLoading: boolean;
   activeAgentId: string | null;
-  onAgentClick: (agent: Agent) => void;
-  onAddAgent: (agent: Omit<Agent, 'id'>) => void;
+  onAgentClick: (agent: ChatAgent) => void;
+  onAddAgent: (config: Omit<AgentConfig, 'id'>) => void;
   onRemoveAgent: (agentId: string) => void;
 }
 
@@ -22,8 +23,8 @@ export function AgentPanel({
 }: AgentPanelProps) {
   const [showForm, setShowForm] = useState(false);
 
-  const handleAddAgent = (agent: Omit<Agent, 'id'>) => {
-    onAddAgent(agent);
+  const handleAddAgent = (config: Omit<AgentConfig, 'id'>) => {
+    onAddAgent(config);
     setShowForm(false);
   };
 

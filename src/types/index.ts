@@ -7,7 +7,7 @@ export interface Message {
   timestamp: number;
 }
 
-export interface Agent {
+export interface AgentConfig {
   id: string;
   name: string;
   model: string;

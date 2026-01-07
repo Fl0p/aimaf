@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Message, Agent } from '../types';
+import { Message, AgentConfig } from '../types';
+import { ChatAgent, ChatMessage } from '../agents/ChatAgent';
 
 const STORAGE_KEY = 'openrouter_api_key';
 
@@ -9,7 +10,7 @@ function generateId(): string {
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agents, setAgents] = useState<ChatAgent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
 
@@ -23,7 +24,7 @@ export function useChat() {
     setMessages((prev) => [...prev, message]);
   }, []);
 
-  const askAgent = useCallback(async (agent: Agent) => {
+  const askAgent = useCallback(async (agent: ChatAgent) => {
     const apiKey = localStorage.getItem(STORAGE_KEY);
     if (!apiKey) {
       alert('Please set OpenRouter API key in Settings');
@@ -34,32 +35,13 @@ export function useChat() {
     setActiveAgentId(agent.id);
 
     try {
-      const chatMessages = [
-        { role: 'system', content: agent.systemPrompt },
-        ...messages.map((m) => ({
-          role: m.role === 'user' ? 'user' : 'assistant',
-          content: m.role === 'agent' ? `[${m.agentName}]: ${m.content}` : m.content,
-        })),
-      ];
+      // Convert messages to ChatMessage format
+      const chatMessages: ChatMessage[] = messages.map((m) => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.role === 'agent' ? `[${m.agentName}]: ${m.content}` : m.content,
+      }));
 
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: agent.model,
-          messages: chatMessages,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('API request failed');
-      }
-
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content || 'No response';
+      const content = await agent.generate(chatMessages);
 
       const agentMessage: Message = {
         id: generateId(),
@@ -80,12 +62,20 @@ export function useChat() {
     }
   }, [messages]);
 
-  const addAgent = useCallback((agent: Omit<Agent, 'id'>) => {
-    const newAgent: Agent = {
-      ...agent,
+  const addAgent = useCallback((config: Omit<AgentConfig, 'id'>) => {
+    const apiKey = localStorage.getItem(STORAGE_KEY);
+    if (!apiKey) {
+      alert('Please set OpenRouter API key in Settings first');
+      return;
+    }
+
+    const fullConfig: AgentConfig = {
+      ...config,
       id: generateId(),
     };
-    setAgents((prev) => [...prev, newAgent]);
+
+    const agent = new ChatAgent(fullConfig, apiKey);
+    setAgents((prev) => [...prev, agent]);
   }, []);
 
   const removeAgent = useCallback((agentId: string) => {

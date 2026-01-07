@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Agent, OpenRouterModel } from '../types';
+import { AgentConfig, OpenRouterModel } from '../types';
 import './AgentForm.css';
 
 interface AgentFormProps {
-  onSubmit: (agent: Omit<Agent, 'id'>) => void;
+  onSubmit: (config: Omit<AgentConfig, 'id'>) => void;
   onCancel: () => void;
 }
 
