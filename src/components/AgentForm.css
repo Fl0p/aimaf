@@ -1,0 +1,73 @@
+.agent-form {
+  padding: 12px;
+  background: white;
+  border-radius: 4px;
+  margin: 8px;
+}
+
+.agent-form-field {
+  margin-bottom: 12px;
+}
+
+.agent-form-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #666;
+}
+
+.agent-form-field input,
+.agent-form-field textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.agent-form-field textarea {
+  resize: vertical;
+}
+
+.color-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.color-option {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.color-option.selected {
+  border-color: #333;
+}
+
+.agent-form-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-cancel,
+.btn-submit {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-cancel {
+  background: #eee;
+}
+
+.btn-submit {
+  background: #61dafb;
+  color: #282c34;
+}
