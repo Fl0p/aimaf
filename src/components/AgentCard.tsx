@@ -10,6 +10,14 @@ const ROLE_COLORS: Record<MafiaRole, string> = {
   [MafiaRole.Don]: '#f3e5f5',
 };
 
+const ROLE_EMOJI: Record<MafiaRole, string> = {
+  [MafiaRole.Civilian]: '👤',
+  [MafiaRole.Mafia]: '🔫',
+  [MafiaRole.Doctor]: '💉',
+  [MafiaRole.Detective]: '🔍',
+  [MafiaRole.Don]: '🎩',
+};
+
 interface AgentCardProps {
   agent: ChatAgent;
   isActive: boolean;
@@ -29,6 +37,7 @@ export function AgentCard({ agent, isActive, disabled, onClick, onRemove }: Agen
     >
       <div className="agent-card-name">
         <span className="agent-status">⚪</span>
+        <span className="agent-role-emoji">{ROLE_EMOJI[agent.mafiaRole]}</span>
         {agent.name}
       </div>
       <div className="agent-card-model">{agent.model}</div>
