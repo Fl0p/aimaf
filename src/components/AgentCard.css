@@ -1,0 +1,52 @@
+.agent-card {
+  padding: 12px;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-left: 4px solid #ccc;
+  position: relative;
+}
+
+.agent-card:hover {
+  background: #eee;
+}
+
+.agent-card.active {
+  background: #e3f2fd;
+}
+
+.agent-card-name {
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agent-status {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.agent-card-model {
+  font-size: 12px;
+  color: #666;
+  margin-left: 16px;
+}
+
+.agent-card-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 14px;
+  padding: 2px 6px;
+}
+
+.agent-card-remove:hover {
+  color: #f44336;
+}
