@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AgentConfig, OpenRouterModel } from '../types';
 import './AgentForm.css';
 
@@ -7,14 +7,43 @@ interface AgentFormProps {
   onCancel: () => void;
 }
 
-const COLORS = ['#4caf50', '#2196f3', '#ff9800', '#e91e63', '#9c27b0', '#00bcd4'];
+const ADJECTIVES = [
+  'swift', 'clever', 'bright', 'calm', 'bold', 'wise', 'keen', 'quick',
+  'sharp', 'cool', 'warm', 'soft', 'wild', 'free', 'deep', 'fair',
+  'grand', 'kind', 'neat', 'pure', 'rare', 'rich', 'safe', 'tall',
+];
+
+const NOUNS = [
+  'fox', 'owl', 'wolf', 'bear', 'hawk', 'lion', 'deer', 'crow',
+  'swan', 'hare', 'lynx', 'seal', 'dove', 'frog', 'moth', 'pike',
+  'wren', 'crab', 'newt', 'toad', 'wasp', 'mole', 'vole', 'goat',
+];
+
+function generateAgentName(): string {
+  const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+  const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
+  return `${adj}-${noun}`;
+}
+
+const COLORS = [
+  '#4caf50', '#2196f3', '#ff9800', '#e91e63', '#9c27b0', '#00bcd4',
+  '#f44336', '#3f51b5', '#009688', '#ff5722', '#795548', '#607d8b',
+  '#8bc34a', '#03a9f4', '#ffc107', '#673ab7', '#cddc39', '#ff4081',
+  '#00e676', '#651fff',
+];
 const MODELS_STORAGE = 'selected_models';
 
+function randomColor(): string {
+  return COLORS[Math.floor(Math.random() * COLORS.length)];
+}
+
 export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
+  const placeholderName = useMemo(() => generateAgentName(), []);
+  const initialColor = useMemo(() => randomColor(), []);
   const [name, setName] = useState('');
   const [model, setModel] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('You are a helpful assistant.');
-  const [color, setColor] = useState(COLORS[0]);
+  const [color, setColor] = useState(initialColor);
   const [availableModels, setAvailableModels] = useState<OpenRouterModel[]>([]);
 
   useEffect(() => {
@@ -30,8 +59,9 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !model) return;
-    onSubmit({ name, model, systemPrompt, color });
+    if (!model) return;
+    const finalName = name.trim() || placeholderName;
+    onSubmit({ name: finalName, model, systemPrompt, color });
   };
 
   return (
@@ -42,8 +72,7 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Agent name"
-          required
+          placeholder={placeholderName}
         />
       </div>
       <div className="agent-form-field">
