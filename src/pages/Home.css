@@ -1,6 +1,7 @@
 .home {
   display: flex;
-  height: calc(100vh - 57px);
+  flex: 1;
+  min-height: 0;
 }
 
 .chat-area {
