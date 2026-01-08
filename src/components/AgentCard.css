@@ -1,19 +1,20 @@
 .agent-card {
   padding: 12px;
-  background: white;
   border-radius: 4px;
   margin-bottom: 8px;
   cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-left: 4px solid #ccc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   position: relative;
 }
 
 .agent-card:hover {
-  background: #eee;
+  filter: brightness(0.95);
 }
 
 .agent-card.active {
-  background: #e3f2fd;
+  box-shadow: 0 0 0 2px #2196f3;
 }
 
 .agent-card-name {
