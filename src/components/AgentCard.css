@@ -32,7 +32,9 @@
 .agent-card-model {
   font-size: 12px;
   color: #666;
-  margin-left: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .agent-card-remove {
