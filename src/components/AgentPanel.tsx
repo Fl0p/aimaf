@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AgentConfig } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 import { AgentForm } from './AgentForm';
+import { AgentCard } from './AgentCard';
 import './AgentPanel.css';
 
 interface AgentPanelProps {
@@ -33,24 +34,14 @@ export function AgentPanel({
       <div className="agent-panel-header">Agents</div>
       <div className="agent-list">
         {agents.map((agent) => (
-          <div
+          <AgentCard
             key={agent.id}
-            className={`agent-item ${activeAgentId === agent.id ? 'active' : ''}`}
-            style={{ borderLeftColor: agent.color }}
-            onClick={() => !isLoading && onAgentClick(agent)}
-          >
-            <div className="agent-name">{agent.name}</div>
-            <div className="agent-model">{agent.model}</div>
-            <button
-              className="agent-remove"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemoveAgent(agent.id);
-              }}
-            >
-              x
-            </button>
-          </div>
+            agent={agent}
+            isActive={activeAgentId === agent.id}
+            disabled={isLoading}
+            onClick={() => onAgentClick(agent)}
+            onRemove={() => onRemoveAgent(agent.id)}
+          />
         ))}
       </div>
       {showForm ? (
