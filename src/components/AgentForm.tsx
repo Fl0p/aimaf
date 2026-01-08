@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { AgentConfig, OpenRouterModel } from '../types';
+import { AgentConfig, OpenRouterModel, MafiaRole } from '../types';
 import './AgentForm.css';
 
 interface AgentFormProps {
@@ -7,22 +7,24 @@ interface AgentFormProps {
   onCancel: () => void;
 }
 
-const ADJECTIVES = [
-  'swift', 'clever', 'bright', 'calm', 'bold', 'wise', 'keen', 'quick',
-  'sharp', 'cool', 'warm', 'soft', 'wild', 'free', 'deep', 'fair',
-  'grand', 'kind', 'neat', 'pure', 'rare', 'rich', 'safe', 'tall',
+const FIRST_NAMES = [
+  'Alex', 'Sam', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Quinn',
+  'Max', 'Charlie', 'Jamie', 'Avery', 'Parker', 'Skyler', 'Drew', 'Reese',
+  'Emma', 'Liam', 'Olivia', 'Noah', 'Sophia', 'James', 'Mia', 'Lucas',
+  'Ivan', 'Olga', 'Dmitri', 'Anna', 'Viktor', 'Elena', 'Nikita', 'Maria',
 ];
 
-const NOUNS = [
-  'fox', 'owl', 'wolf', 'bear', 'hawk', 'lion', 'deer', 'crow',
-  'swan', 'hare', 'lynx', 'seal', 'dove', 'frog', 'moth', 'pike',
-  'wren', 'crab', 'newt', 'toad', 'wasp', 'mole', 'vole', 'goat',
+const LAST_NAMES = [
+  'Smith', 'Johnson', 'Brown', 'Davis', 'Wilson', 'Moore', 'Clark', 'Hall',
+  'Young', 'King', 'Wright', 'Green', 'Adams', 'Baker', 'Hill', 'Scott',
+  'Torres', 'Chen', 'Kumar', 'Silva', 'Kim', 'Müller', 'Rossi', 'Tanaka',
+  'Petrov', 'Ivanov', 'Volkov', 'Novak', 'Berg', 'Costa', 'Santos', 'Park',
 ];
 
 function generateAgentName(): string {
-  const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
-  const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
-  return `${adj}-${noun}`;
+  const first = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
+  const last = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
+  return `${first} ${last}`;
 }
 
 const COLORS = [
@@ -44,6 +46,7 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
   const [model, setModel] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('You are a helpful assistant.');
   const [color, setColor] = useState(initialColor);
+  const [mafiaRole, setMafiaRole] = useState<MafiaRole>(MafiaRole.Civilian);
   const [availableModels, setAvailableModels] = useState<OpenRouterModel[]>([]);
 
   useEffect(() => {
@@ -61,7 +64,7 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
     e.preventDefault();
     if (!model) return;
     const finalName = name.trim() || placeholderName;
-    onSubmit({ name: finalName, model, systemPrompt, color });
+    onSubmit({ name: finalName, model, systemPrompt, color, mafiaRole });
   };
 
   return (
@@ -74,6 +77,16 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
           onChange={(e) => setName(e.target.value)}
           placeholder={placeholderName}
         />
+      </div>
+      <div className="agent-form-field">
+        <label>Role</label>
+        <select value={mafiaRole} onChange={(e) => setMafiaRole(e.target.value as MafiaRole)}>
+          {Object.values(MafiaRole).map((role) => (
+            <option key={role} value={role}>
+              {role.charAt(0).toUpperCase() + role.slice(1)}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="agent-form-field">
         <label>Model</label>

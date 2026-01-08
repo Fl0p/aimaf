@@ -1,6 +1,6 @@
 import { ToolLoopAgent, ModelMessage, ToolSet } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { AgentConfig, ChatMessage } from '../types';
+import { AgentConfig, ChatMessage, MafiaRole } from '../types';
 
 export class ChatAgent {
   private config: AgentConfig;
@@ -45,6 +45,10 @@ export class ChatAgent {
 
   get systemPrompt(): string {
     return this.config.systemPrompt;
+  }
+
+  get mafiaRole(): MafiaRole {
+    return this.config.mafiaRole;
   }
 
   toJSON(): AgentConfig {
