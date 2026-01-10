@@ -177,7 +177,7 @@ export function useChat() {
 
     welcomeDetectiveMessage();
     welcomeDoctorMessage();
-    
+
   }, [addMessage, agents, gameStatusMessage, welcomeMafiaMessage]);
 
   const status = useCallback(() => {
@@ -240,6 +240,18 @@ export function useChat() {
       sender: MessageSender.System,
       content: `Time changed to ${newIsDay ? 'DAY' : 'NIGHT'}`,
     });
+
+    if (!newIsDay) {
+      // Message for mafia
+      const aliveMafia = agents.filter((a) => !a.isDead && isMafia(a.mafiaRole));
+      if (aliveMafia.length > 0) {
+        addMessage({
+          sender: MessageSender.System,
+          content: `Mafia is active! Alive mafia members: ${aliveMafia.map((a) => `[${a.name}]`).join(', ')}. You can act now.`,
+          mafia: true,
+        });
+      }
+    }
   }, [gameState, isDay, addMessage]);
 
 

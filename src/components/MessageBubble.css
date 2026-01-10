@@ -39,7 +39,6 @@
 }
 
 .message-private {
-  border: 1px solid #333333 !important;
   background-color: #cccccc;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
