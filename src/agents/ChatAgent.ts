@@ -1,6 +1,6 @@
 import { ToolLoopAgent, ModelMessage, ToolSet } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { AgentConfig, ChatMessage, MafiaRole } from '../types';
+import { AgentConfig, Message, MafiaRole, MessageSender } from '../types';
 
 export class ChatAgent {
   private config: AgentConfig;
@@ -17,10 +17,12 @@ export class ChatAgent {
     });
   }
 
-  async generate(messages: ChatMessage[]): Promise<string> {
+  async generate(messages: Message[]): Promise<string> {
     const modelMessages: ModelMessage[] = messages.map((m) => ({
-      role: m.role,
-      content: m.content,
+      role: m.sender === MessageSender.Moderator ? 'user' : 'assistant',
+      content: m.sender === MessageSender.Agent && m.agentName 
+        ? `[${m.agentName}]: ${m.content}` 
+        : m.content,
     }));
 
     const result = await this.agent.generate({ messages: modelMessages });

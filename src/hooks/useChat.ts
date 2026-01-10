@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Message, AgentConfig, ChatMessage } from '../types';
+import { Message, AgentConfig, MessageSender } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 
 const STORAGE_KEY = 'openrouter_api_key';
@@ -17,7 +17,7 @@ export function useChat() {
   const sendMessage = useCallback((content: string) => {
     const message: Message = {
       id: generateId(),
-      role: 'user',
+      sender: MessageSender.Moderator,
       content,
       timestamp: Date.now(),
     };
@@ -35,17 +35,11 @@ export function useChat() {
     setActiveAgentId(agent.id);
 
     try {
-      // Convert messages to ChatMessage format
-      const chatMessages: ChatMessage[] = messages.map((m) => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.role === 'agent' ? `[${m.agentName}]: ${m.content}` : m.content,
-      }));
-
-      const content = await agent.generate(chatMessages);
+      const content = await agent.generate(messages);
 
       const agentMessage: Message = {
         id: generateId(),
-        role: 'agent',
+        sender: MessageSender.Agent,
         agentId: agent.id,
         agentName: agent.name,
         content,
