@@ -12,6 +12,7 @@ interface AgentPanelProps {
   onAgentClick: (agent: ChatAgent) => void;
   onAddAgent: (config: Omit<AgentConfig, 'id'>) => void;
   onRemoveAgent: (agentId: string) => void;
+  disabled?: boolean;
 }
 
 export function AgentPanel({
@@ -21,6 +22,7 @@ export function AgentPanel({
   onAgentClick,
   onAddAgent,
   onRemoveAgent,
+  disabled = false,
 }: AgentPanelProps) {
   const [showForm, setShowForm] = useState(false);
 
@@ -40,16 +42,18 @@ export function AgentPanel({
             isActive={activeAgentId === agent.id}
             disabled={isLoading}
             onClick={() => onAgentClick(agent)}
-            onRemove={() => onRemoveAgent(agent.id)}
+            onRemove={disabled ? undefined : () => onRemoveAgent(agent.id)}
           />
         ))}
       </div>
-      {showForm ? (
-        <AgentForm onSubmit={handleAddAgent} onCancel={() => setShowForm(false)} />
-      ) : (
-        <button className="agent-add-btn" onClick={() => setShowForm(true)}>
-          + Add Agent
-        </button>
+      {!disabled && (
+        showForm ? (
+          <AgentForm onSubmit={handleAddAgent} onCancel={() => setShowForm(false)} />
+        ) : (
+          <button className="agent-add-btn" onClick={() => setShowForm(true)}>
+            + Add Agent
+          </button>
+        )
       )}
     </div>
   );

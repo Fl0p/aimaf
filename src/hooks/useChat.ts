@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Message, AgentConfig, MessageSender } from '../types';
+import { Message, AgentConfig, MessageSender, GameState } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 
 const STORAGE_KEY = 'openrouter_api_key';
@@ -13,6 +13,7 @@ export function useChat() {
   const [agents, setAgents] = useState<ChatAgent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
+  const [gameState, setGameState] = useState<GameState>(GameState.Initial);
 
   const sendMessage = useCallback((content: string) => {
     const message: Message = {
@@ -80,15 +81,30 @@ export function useChat() {
     setMessages([]);
   }, []);
 
+  const startGame = useCallback(() => {
+    setGameState(GameState.Started);
+    
+    const systemMessage: Message = {
+      id: generateId(),
+      sender: MessageSender.System,
+      content: 'Game has started! This is a test system message.',
+      timestamp: Date.now(),
+    };
+    
+    setMessages((prev) => [...prev, systemMessage]);
+  }, []);
+
   return {
     messages,
     agents,
     isLoading,
     activeAgentId,
+    gameState,
     sendMessage,
     askAgent,
     addAgent,
     removeAgent,
     clearMessages,
+    startGame,
   };
 }
