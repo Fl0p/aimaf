@@ -90,9 +90,31 @@ export function useChat() {
     setAgents((prev) => prev.filter((a) => a.id !== agentId));
   }, []);
 
+  const killAgent = useCallback((agentId: string) => {
+    const agent = agents.find((a) => a.id === agentId);
+    if (agent) {
+      agent.isDead = true;
+      setAgents((prev) => [...prev]);
+      
+      addMessage({
+        sender: MessageSender.System,
+        content: `[${agent.name}] (${agent.mafiaRole}) has been killed by [Moderator]!`,
+      });
+      gameStatusMessage();
+    }
+  }, [agents, addMessage]);
+
   const clearMessages = useCallback(() => {
     setMessages([]);
   }, []);
+
+
+  const gameStatusMessage = useCallback(() => {
+    addMessage({
+      sender: MessageSender.System,
+      content: formatGameStatus(agents),
+    });
+  }, [agents, addMessage]);
 
   const startGame = useCallback(() => {
     setGameState(GameState.Started);
@@ -102,19 +124,12 @@ export function useChat() {
       content: 'Game has started! This is a test system message.',
     });
 
-    addMessage({
-      sender: MessageSender.System,
-      content: formatGameStatus(agents),
-    });
-  }, [addMessage, agents]);
+    gameStatusMessage();
+  }, [addMessage, agents, gameStatusMessage]);
 
-  const test1 = useCallback(() => {
-    console.log('Test 1 called');
-    addMessage({
-      sender: MessageSender.System,
-      content: 'Test 1 executed',
-    });
-  }, [addMessage]);
+  const status = useCallback(() => {
+    gameStatusMessage();
+  }, [gameStatusMessage]);
 
   const test2 = useCallback(() => {
     console.log('Test 2 called');
@@ -142,9 +157,10 @@ export function useChat() {
     askAgent,
     addAgent,
     removeAgent,
+    killAgent,
     clearMessages,
     startGame,
-    test1,
+    status,
     test2,
     test3,
   };

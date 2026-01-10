@@ -1,30 +1,39 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AgentConfig, OpenRouterModel, MafiaRole } from '../types';
+import { ChatAgent } from '../agents/ChatAgent';
 import './AgentForm.css';
 
 interface AgentFormProps {
   onSubmit: (config: Omit<AgentConfig, 'id'>) => void;
   onCancel: () => void;
+  existingAgents: ChatAgent[];
 }
 
-const FIRST_NAMES = [
-  'Alex', 'Sam', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Quinn',
-  'Max', 'Charlie', 'Jamie', 'Avery', 'Parker', 'Skyler', 'Drew', 'Reese',
-  'Emma', 'Liam', 'Olivia', 'Noah', 'Sophia', 'James', 'Mia', 'Lucas',
-  'Ivan', 'Olga', 'Dmitri', 'Anna', 'Viktor', 'Elena', 'Nikita', 'Maria',
+const NAME_PREFIXES = [
+  'Mega', 'Kvazi', 'Bara', 'Kara', 'Ultra', 'Super', 'Giga', 'Tera',
+  'Hyper', 'Meta', 'Cyber', 'Turbo', 'Nitro', 'Retro', 'Astro', 'Cosmo',
+  'Neo', 'Proto', 'Crypto', 'Pyro', 'Hydro', 'Electro', 'Techno', 'Nano',
+  'Macro', 'Micro', 'Alpha', 'Beta', 'Gamma', 'Delta', 'Omega', 'Sigma',
+  'Dyna', 'Aero', 'Geo', 'Bio', 'Echo', 'Nova', 'Stellar', 'Lunar', 'Solar',
+  'Chrono', 'Tempo', 'Sonic', 'Laser', 'Radar', 'Sonar', 'Vector', 'Matrix',
+  'Pixel', 'Voxel', 'Hexa', 'Octa', 'Penta', 'Tetra', 'Mono', 'Poly',
 ];
 
-const LAST_NAMES = [
-  'Smith', 'Johnson', 'Brown', 'Davis', 'Wilson', 'Moore', 'Clark', 'Hall',
-  'Young', 'King', 'Wright', 'Green', 'Adams', 'Baker', 'Hill', 'Scott',
-  'Torres', 'Chen', 'Kumar', 'Silva', 'Kim', 'Müller', 'Rossi', 'Tanaka',
-  'Petrov', 'Ivanov', 'Volkov', 'Novak', 'Berg', 'Costa', 'Santos', 'Park',
+const NAME_SUFFIXES = [
+  'Tron', 'Modo', 'Bulka', 'Bas', 'Max', 'Rex', 'Zor', 'Tor',
+  'Dor', 'Mor', 'Cor', 'Vor', 'Gor', 'Lor', 'Nor', 'Por',
+  'Bot', 'Naut', 'Droid', 'Mech', 'Tech', 'Sync', 'Link', 'Node',
+  'Core', 'Wave', 'Pulse', 'Spark', 'Bolt', 'Flash', 'Blast', 'Storm',
+  'Force', 'Power', 'Drive', 'Shift', 'Flow', 'Flux', 'Beam', 'Ray',
+  'Star', 'Moon', 'Sun', 'Sky', 'Wind', 'Fire', 'Ice', 'Stone',
+  'Mind', 'Soul', 'Spirit', 'Heart', 'Will', 'Rage', 'Fury', 'Wrath',
+  'King', 'Lord', 'Duke', 'Baron', 'Knight', 'Guard', 'Blade', 'Shield',
 ];
 
 function generateAgentName(): string {
-  const first = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)];
-  const last = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
-  return `${first} ${last}`;
+  const prefix = NAME_PREFIXES[Math.floor(Math.random() * NAME_PREFIXES.length)];
+  const suffix = NAME_SUFFIXES[Math.floor(Math.random() * NAME_SUFFIXES.length)];
+  return `${prefix}${suffix}`;
 }
 
 const COLORS = [
@@ -39,7 +48,7 @@ function randomColor(): string {
   return COLORS[Math.floor(Math.random() * COLORS.length)];
 }
 
-export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
+export function AgentForm({ onSubmit, onCancel, existingAgents }: AgentFormProps) {
   const placeholderName = useMemo(() => generateAgentName(), []);
   const initialColor = useMemo(() => randomColor(), []);
   const [name, setName] = useState('');
@@ -64,6 +73,14 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
     e.preventDefault();
     if (!model) return;
     const finalName = name.trim() || placeholderName;
+    
+    // Check if agent with this name already exists
+    const nameExists = existingAgents.some(agent => agent.name === finalName);
+    if (nameExists) {
+      alert(`Agent with name "${finalName}" already exists!`);
+      return;
+    }
+    
     onSubmit({ name: finalName, model, systemPrompt, color, mafiaRole });
   };
 
