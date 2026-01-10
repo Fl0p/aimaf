@@ -54,7 +54,7 @@ export function useChat() {
         
         addMessage({
           sender: MessageSender.System,
-          content: `[${agent.name}] wants to kill [${playerName}].`,
+          content: `@${agent.name} wants to kill @${playerName}.`,
           mafia: true,
           tool: toolName,
         });
@@ -71,7 +71,7 @@ export function useChat() {
         
         addMessage({
           sender: MessageSender.System,
-          content: `[${agent.name}] wants to check [${playerName}].`,
+          content: `@${agent.name} wants to check @${playerName}.`,
           agentId: agent.id,
           pm: true,
           tool: toolName,
@@ -89,7 +89,7 @@ export function useChat() {
         
         addMessage({
           sender: MessageSender.System,
-          content: `[${agent.name}] wants to save [${playerName}].`,
+          content: `@${agent.name} wants to save @${playerName}.`,
           agentId: agent.id,
           pm: true,
           tool: toolName,
@@ -105,8 +105,9 @@ export function useChat() {
 
     try {
       const startTime = performance.now();
-      const allMessages = messagesRef.current
-      const result = await agent.generate(allMessages);
+      const allMessages = messagesRef.current;
+      const allAgentNames = agents.map(a => a.name);
+      const result = await agent.generate(allMessages, allAgentNames);
       const endTime = performance.now();
       const executionTime = (endTime - startTime) / 1000; // convert to seconds
       return { ...result, executionTime };
@@ -117,7 +118,7 @@ export function useChat() {
       setIsLoading(false);
       setActiveAgentId(null);
     }
-  }, []);
+  }, [agents]);
 
   const askAgent = useCallback(async (agent: ChatAgent) => {
     if (gameState !== GameState.Started) {
@@ -155,7 +156,7 @@ export function useChat() {
     } catch (error) {
       addMessage({
         sender: MessageSender.System,
-        content: `Error calling [${agent.name}]: ${error}`,
+        content: `Error calling @${agent.name}: ${error}`,
       });
       alert('Error calling API. Check console for details.');
     }
@@ -196,7 +197,7 @@ export function useChat() {
       
       addMessage({
         sender: MessageSender.System,
-        content: `[${agent.name}] (${agent.mafiaRole}) has been killed by [Moderator]!`,
+        content: `@${agent.name} (${agent.mafiaRole}) has been killed by @Moderator!`,
       });
       gameStatusMessage();
     }
@@ -209,8 +210,8 @@ export function useChat() {
   const welcomeMafiaMessage = useCallback(() => {
     const mafiaAgents = agents.filter((a) => isMafia(a.mafiaRole));
     const don = agents.find((a) => a.mafiaRole === MafiaRole.Don);
-    const donInfo = don ? `\nThe Don is [${don.name}].` : '';
-    const welcomeMessage = `Welcome to the game, Mafia teammates are: ${mafiaAgents.map((a) => `[${a.name}]`).join(', ')}.${donInfo}`;
+    const donInfo = don ? `\nThe Don is @${don.name}.` : '';
+    const welcomeMessage = `Welcome to the game, Mafia teammates are: ${mafiaAgents.map((a) => `@${a.name}`).join(', ')}.${donInfo}`;
     addMessage({
       sender: MessageSender.System,
       content: welcomeMessage,
@@ -221,7 +222,7 @@ export function useChat() {
   const welcomeDetectiveMessage = useCallback(() => {
     const detective = agents.find((a) => a.mafiaRole === MafiaRole.Detective);
     if (detective) {
-      const welcomeMessage = `Welcome to the game, [${detective.name}]! You are the Detective. Use your skills to find the mafia members.`;
+      const welcomeMessage = `Welcome to the game, @${detective.name}! You are the Detective. Use your skills to find the mafia members.`;
       addMessage({
         sender: MessageSender.System,
         content: welcomeMessage,
@@ -234,7 +235,7 @@ export function useChat() {
   const welcomeDoctorMessage = useCallback(() => {
     const doctor = agents.find((a) => a.mafiaRole === MafiaRole.Doctor);
     if (doctor) {
-      const welcomeMessage = `Welcome to the game, [${doctor.name}]! You are the Doctor. You can save one player each night.`;
+      const welcomeMessage = `Welcome to the game, @${doctor.name}! You are the Doctor. You can save one player each night.`;
       addMessage({
         sender: MessageSender.System,
         content: welcomeMessage,
@@ -274,7 +275,7 @@ export function useChat() {
 
     addMessage({
       sender: MessageSender.System,
-      content: `Day round started. First of two discussions. Agents will speak in order: ${shuffledAgents.map((a) => `[${a.name}]`).join(', ')}`,
+      content: `Day round started. First of two discussions. Agents will speak in order: ${shuffledAgents.map((a) => `@${a.name}`).join(', ')}`,
     });
 
     // Call each agent sequentially
@@ -307,7 +308,7 @@ export function useChat() {
 
     addMessage({
       sender: MessageSender.System,
-      content: `Second discussion. Agents will speak in order: ${shuffledAgentsSecond.map((a) => `[${a.name}]`).join(', ')}`,
+      content: `Second discussion. Agents will speak in order: ${shuffledAgentsSecond.map((a) => `@${a.name}`).join(', ')}`,
     });
 
     // Call each agent sequentially again
@@ -347,7 +348,7 @@ export function useChat() {
     
     addMessage({
       sender: MessageSender.System,
-      content: `Night round started. Mafia members will act: ${aliveMafia.map((a) => `[${a.name}]`).join(', ')}. Now you can discuss who to kill tonight.`,
+      content: `Night round started. Mafia members will act: ${aliveMafia.map((a) => `@${a.name}`).join(', ')}. Now you can discuss who to kill tonight.`,
       mafia: true,
     });
 
@@ -375,7 +376,7 @@ export function useChat() {
     if (finalMafiaWord) {
       addMessage({
         sender: MessageSender.System,
-        content: `[${finalMafiaWord.name}], now you can use the kill tool to make the final decision.`,
+        content: `@${finalMafiaWord.name}, now you can use the kill tool to make the final decision.`,
         mafia: true,
       });
       try {
@@ -404,7 +405,7 @@ export function useChat() {
     if (detective) {
       addMessage({
         sender: MessageSender.System,
-        content: `[${detective.name}] Detective is investigating.`,
+        content: `@${detective.name} Detective is investigating.`,
         agentId: detective.id,
         pm: true,
       });
@@ -434,7 +435,7 @@ export function useChat() {
     if (doctor) {
       addMessage({
         sender: MessageSender.System,
-        content: `[${doctor.name}] Doctor is choosing who to save.`,
+        content: `@${doctor.name} Doctor is choosing who to save.`,
         agentId: doctor.id,
         pm: true,
       });
@@ -499,7 +500,7 @@ export function useChat() {
     results.checks.forEach(check => {
       addMessage({
         sender: MessageSender.System,
-        content: `[${check.detective.name}] checked [${check.target.name}]. Result: ${check.isMafia ? 'MAFIA' : 'NOT MAFIA'}`,
+        content: `@${check.detective.name} checked @${check.target.name}. Result: ${check.isMafia ? 'MAFIA' : 'NOT MAFIA'}`,
         agentId: check.detective.id,
         pm: true,
       });
@@ -511,7 +512,7 @@ export function useChat() {
       if (doctor) {
         addMessage({
           sender: MessageSender.System,
-          content: `[${doctor.name}] You saved [${results.saved.name}] tonight.`,
+          content: `@${doctor.name} You saved @${results.saved.name} tonight.`,
           agentId: doctor.id,
           pm: true,
         });
@@ -525,7 +526,7 @@ export function useChat() {
       
       addMessage({
         sender: MessageSender.System,
-        content: `[${results.killed.name}] (${results.killed.mafiaRole}) was killed during the night!`,
+        content: `@${results.killed.name} (${results.killed.mafiaRole}) was killed during the night!`,
       });
     } else {
       addMessage({

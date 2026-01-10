@@ -24,7 +24,7 @@ export class ChatAgent {
   }
 
   private createToolResponse(action: string, playerName: string): string {
-    return `[TOOL:${action}] Your request to ${action} player [${playerName}] has been accepted. The result will be known when the day comes.`;
+    return `[TOOL:${action}] Your request to ${action} player @${playerName} has been accepted. The result will be known when the day comes.`;
   }
 
   private createTools() {
@@ -72,7 +72,7 @@ export class ChatAgent {
     return tools;
   }
 
-  async generate(messages: Message[]): Promise<{ text: string; toolCalls?: Array<{ tool: string; args: Record<string, any> }> }> {
+  async generate(messages: Message[], allAgentNames: string[]): Promise<{ text: string; toolCalls?: Array<{ tool: string; args: Record<string, any> }> }> {
     const modelMessages = this.convertMessages(messages);
     const result = await this.agent.generate({ messages: modelMessages });
     
@@ -94,16 +94,18 @@ export class ChatAgent {
     }
     
     return {
-      text: this.filterOwnName(result.text),
+      text: this.fixNames(result.text, allAgentNames),
       toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
     };
   }
 
-  private filterOwnName(text: string): string {
-    // Remove "[Name]" or "Name:" or "Name " at the start of the message
+  private fixNames(text: string, allAgentNames: string[]): string {
+    // Step 1: Remove own name at the start of the message
+    // Remove "@Name" or "Name:" or "Name " or "[Name]" at the start
     const patterns = [
-      new RegExp(`^\\[${this.name}\\]\\s*:?\\s*`, 'i'),
+      new RegExp(`^@${this.name}\\s*:?\\s*`, 'i'),
       new RegExp(`^${this.name}\\s*:\\s*`, 'i'),
+      new RegExp(`^\\[${this.name}\\]\\s*:?\\s*`, 'i'),
     ];
 
     let filtered = text;
@@ -111,14 +113,26 @@ export class ChatAgent {
       filtered = filtered.replace(pattern, '');
     }
 
+    // Step 2: Add @ before all agent names that don't have it
+    for (const name of allAgentNames) {
+      // Match name that is NOT preceded by @ and is a whole word
+      // Use word boundaries to avoid partial matches
+      const namePattern = new RegExp(`(?<!@)\\b(${name})\\b`, 'gi');
+      filtered = filtered.replace(namePattern, '@$1');
+    }
+
     return filtered.trim();
+  }
+
+  getVisibleMessages(messages: Message[]): ModelMessage[] {
+    return this.convertMessages(messages);
   }
 
   private convertMessages(messages: Message[]): ModelMessage[] {
     const result: ModelMessage[] = [
       {
-        role: 'user',
-        content: `[System] [${this.name}] joined the game. Your role is ${this.mafiaRole}.`,
+        role: 'assistant',
+        content: `My name is @${this.name} and my role is ${this.mafiaRole}.`,
       },
     ];
 
@@ -138,20 +152,20 @@ export class ChatAgent {
 
       let senderName: string;
       if (m.sender === MessageSender.System) {
-        senderName = 'System';
+        senderName = '[System]';
       } else if (m.sender === MessageSender.Moderator) {
-        senderName = 'Moderator';
+        senderName = '[Moderator]';
       } else {
-        senderName = m.agentName || 'Unknown';
+        senderName = `@${m.agentName || 'Unknown'}`;
       }
 
       result.push({
         role,
-        content: `[${senderName}] ${m.content}`,
+        content: `${senderName} ${m.content}`,
       });
     }
 
-    console.log(` My name is [${this.name}] and my role is [${this.mafiaRole}]`);
+    console.log(` My name is @${this.name} and my role is ${this.mafiaRole}`);
     console.log(` My messages are: ${JSON.stringify(result, null, 2)}`);
     return result;
   }

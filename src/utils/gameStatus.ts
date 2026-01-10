@@ -69,7 +69,7 @@ export function formatPlayersList(agents: ChatAgent[]): string {
     return 'No players in the game yet.';
   }
   
-  const allNames = agents.map(agent => `[${agent.name}]`).join(', ');
+  const allNames = agents.map(agent => `@${agent.name}`).join(', ');
   return `${agents.length} players:\n${allNames}`;
 }
 
@@ -94,7 +94,7 @@ export function formatGameStatus(agents: ChatAgent[]): string {
   // Dead list (names and roles)
   const deadAgents = agents.filter(agent => agent.isDead);
   if (deadAgents.length > 0) {
-    const deadList = deadAgents.map(agent => `[${agent.name}] - ${agent.mafiaRole}`).join(', ');
+    const deadList = deadAgents.map(agent => `@${agent.name} - ${agent.mafiaRole}`).join(', ');
     lines.push(`Dead list: ${deadList}`);
   } else {
     lines.push('Dead list: none');

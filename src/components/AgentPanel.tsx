@@ -38,6 +38,7 @@ interface AgentPanelProps {
   onRemoveAgent: (agentId: string) => void;
   onKillAgent: (agentId: string) => void;
   gameState: GameState;
+  onShowAgentInfo: (agent: ChatAgent) => void;
 }
 
 export function AgentPanel({
@@ -49,6 +50,7 @@ export function AgentPanel({
   onRemoveAgent,
   onKillAgent,
   gameState,
+  onShowAgentInfo,
 }: AgentPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
@@ -133,6 +135,7 @@ export function AgentPanel({
             disabled={isLoading}
             onClick={() => onAgentClick(agent)}
             onX={() => handleX(agent.id)}
+            onI={() => onShowAgentInfo(agent)}
           />
         ))}
       </div>

@@ -24,9 +24,10 @@ interface AgentCardProps {
   disabled: boolean;
   onClick: () => void;
   onX: () => void;
+  onI: () => void;
 }
 
-export function AgentCard({ agent, isActive, disabled, onClick, onX }: AgentCardProps) {
+export function AgentCard({ agent, isActive, disabled, onClick, onX, onI }: AgentCardProps) {
   const backgroundColor = ROLE_COLORS[agent.mafiaRole] || '#fff';
   const statusColor = agent.isDead ? '⚫' : (isActive ? '🟢' : '⚪');
 
@@ -43,6 +44,15 @@ export function AgentCard({ agent, isActive, disabled, onClick, onX }: AgentCard
         {agent.name}
       </div>
       <div className="agent-card-model">{agent.model}</div>
+      <button
+        className="agent-card-info"
+        onClick={(e) => {
+          e.stopPropagation();
+          onI();
+        }}
+      >
+        ℹ
+      </button>
       <button
         className="agent-card-remove"
         onClick={(e) => {
