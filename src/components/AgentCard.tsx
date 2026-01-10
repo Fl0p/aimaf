@@ -35,6 +35,7 @@ export function AgentCard({ agent, isActive, disabled, onClick, onRemove }: Agen
       className={`agent-card ${isActive ? 'active' : ''}`}
       style={{ borderLeftColor: agent.color, backgroundColor }}
       onClick={() => !disabled && onClick()}
+      title={agent.systemPrompt}
     >
       <div className="agent-card-name">
         <span className="agent-status">{statusColor}</span>
