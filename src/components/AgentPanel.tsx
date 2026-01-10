@@ -119,11 +119,13 @@ export function AgentPanel({
     }
   };
 
+  const sortedAgents = [...agents].sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <div className="agent-panel">
       <div className="agent-panel-header">Agents</div>
       <div className="agent-list">
-        {agents.map((agent) => (
+        {sortedAgents.map((agent) => (
           <AgentCard
             key={agent.id}
             agent={agent}

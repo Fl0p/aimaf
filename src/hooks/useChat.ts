@@ -268,12 +268,13 @@ export function useChat() {
   const roundDay = useCallback(async () => {
     const aliveAgents = agents.filter((a) => !a.isDead);
     
+    // First discussion cycle
     // Shuffle alive agents randomly
     const shuffledAgents = [...aliveAgents].sort(() => Math.random() - 0.5);
 
     addMessage({
       sender: MessageSender.System,
-      content: `Day round started. Agents will speak in order: ${shuffledAgents.map((a) => `[${a.name}]`).join(', ')}`,
+      content: `Day round started. First of two discussions. Agents will speak in order: ${shuffledAgents.map((a) => `[${a.name}]`).join(', ')}`,
     });
 
     // Call each agent sequentially
@@ -295,16 +296,46 @@ export function useChat() {
           }
         }
       } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    // Second discussion cycle
+    // Re-shuffle alive agents randomly
+    const aliveAgentsSecond = agents.filter((a) => !a.isDead);
+    const shuffledAgentsSecond = [...aliveAgentsSecond].sort(() => Math.random() - 0.5);
+
+    addMessage({
+      sender: MessageSender.System,
+      content: `Second discussion. Agents will speak in order: ${shuffledAgentsSecond.map((a) => `[${a.name}]`).join(', ')}`,
+    });
+
+    // Call each agent sequentially again
+    for (const agent of shuffledAgentsSecond) {
+      try {
+        const result = await callAgentInternal(agent);
         addMessage({
-          sender: MessageSender.System,
-          content: `Error calling [${agent.name}]: ${error}`,
+          sender: MessageSender.Agent,
+          agentId: agent.id,
+          agentName: agent.name,
+          content: result.text,
+          executionTime: result.executionTime,
         });
+
+        // Handle tool calls
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(agent, toolCall.tool, toolCall.args);
+          }
+        }
+      } catch (error) {
+        console.error('Error calling API:', error);
       }
     }
 
     addMessage({
       sender: MessageSender.System,
-      content: 'Day round completed.',
+      content: 'Day rounds completed. Let\'s vote to eliminate suspects. Use vote tool to vote for a suspect.',
     });
   }, [agents, addMessage, callAgentInternal, handleToolCall]);
 
@@ -480,7 +511,7 @@ export function useChat() {
       if (doctor) {
         addMessage({
           sender: MessageSender.System,
-          content: `You saved [${results.saved.name}] tonight.`,
+          content: `[${doctor.name}] You saved [${results.saved.name}] tonight.`,
           agentId: doctor.id,
           pm: true,
         });
