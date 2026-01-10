@@ -12,6 +12,12 @@ export enum MafiaRole {
   Don = 'don',
 }
 
+export enum GameState {
+  Initial = 'initial',
+  Started = 'started',
+  Ended = 'ended',
+}
+
 export interface Message {
   id: string;
   sender: MessageSender;

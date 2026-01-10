@@ -7,17 +7,23 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message, agentColor }: ChatMessageProps) {
+  const isSystem = message.sender === MessageSender.System;
+  const isModerator = message.sender === MessageSender.Moderator;
+  const isAgent = message.sender === MessageSender.Agent;
+
   return (
     <div
-      className={`message ${message.sender === MessageSender.Moderator ? 'message-user' : 'message-agent'}`}
-      style={message.sender !== MessageSender.Moderator ? { borderLeftColor: agentColor } : undefined}
+      className={`message ${isSystem ? 'message-system' : isModerator ? 'message-user' : 'message-agent'}`}
+      style={isAgent ? { borderLeftColor: agentColor } : undefined}
     >
-      <div
-        className="message-sender-name"
-        style={{ color: message.sender === MessageSender.Moderator ? '#1976d2' : agentColor }}
-      >
-        {message.sender === MessageSender.Moderator ? 'Moderator' : message.agentName}
-      </div>
+      {!isSystem && (
+        <div
+          className="message-sender-name"
+          style={{ color: isModerator ? '#1976d2' : agentColor }}
+        >
+          {isModerator ? 'Moderator' : message.agentName}
+        </div>
+      )}
       <div className="message-content">{message.content}</div>
     </div>
   );

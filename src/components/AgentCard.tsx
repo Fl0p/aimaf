@@ -23,7 +23,7 @@ interface AgentCardProps {
   isActive: boolean;
   disabled: boolean;
   onClick: () => void;
-  onRemove: () => void;
+  onRemove?: () => void;
 }
 
 export function AgentCard({ agent, isActive, disabled, onClick, onRemove }: AgentCardProps) {
@@ -41,15 +41,17 @@ export function AgentCard({ agent, isActive, disabled, onClick, onRemove }: Agen
         {agent.name}
       </div>
       <div className="agent-card-model">{agent.model}</div>
-      <button
-        className="agent-card-remove"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-      >
-        ×
-      </button>
+      {onRemove && (
+        <button
+          className="agent-card-remove"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        >
+          ×
+        </button>
+      )}
     </div>
   );
 }
