@@ -7,6 +7,7 @@ interface AgentFormProps {
   onSubmit: (config: Omit<AgentConfig, 'id'>) => void;
   onCancel: () => void;
   existingAgents: ChatAgent[];
+  initialAgent?: ChatAgent;
 }
 
 const NAME_PREFIXES = [
@@ -48,14 +49,14 @@ function randomColor(): string {
   return COLORS[Math.floor(Math.random() * COLORS.length)];
 }
 
-export function AgentForm({ onSubmit, onCancel, existingAgents }: AgentFormProps) {
+export function AgentForm({ onSubmit, onCancel, existingAgents, initialAgent }: AgentFormProps) {
   const placeholderName = useMemo(() => generateAgentName(), []);
   const initialColor = useMemo(() => randomColor(), []);
-  const [name, setName] = useState('');
-  const [model, setModel] = useState('');
-  const [systemPrompt, setSystemPrompt] = useState('');
-  const [color, setColor] = useState(initialColor);
-  const [mafiaRole, setMafiaRole] = useState<MafiaRole>(MafiaRole.Civilian);
+  const [name, setName] = useState(initialAgent?.name || '');
+  const [model, setModel] = useState(initialAgent?.model || '');
+  const [systemPrompt, setSystemPrompt] = useState(initialAgent?.systemPrompt || '');
+  const [color, setColor] = useState(initialAgent?.color || initialColor);
+  const [mafiaRole, setMafiaRole] = useState<MafiaRole>(initialAgent?.mafiaRole || MafiaRole.Civilian);
   const [availableModels, setAvailableModels] = useState<OpenRouterModel[]>([]);
 
   useEffect(() => {
@@ -74,8 +75,10 @@ export function AgentForm({ onSubmit, onCancel, existingAgents }: AgentFormProps
     if (!model) return;
     const finalName = name.trim() || placeholderName;
     
-    // Check if agent with this name already exists
-    const nameExists = existingAgents.some(agent => agent.name === finalName);
+    // Check if agent with this name already exists (except when editing)
+    const nameExists = existingAgents.some(agent => 
+      agent.name === finalName && agent.id !== initialAgent?.id
+    );
     if (nameExists) {
       alert(`Agent with name "${finalName}" already exists!`);
       return;
@@ -148,7 +151,7 @@ export function AgentForm({ onSubmit, onCancel, existingAgents }: AgentFormProps
           Cancel
         </button>
         <button type="submit" className="btn-submit" disabled={!model}>
-          Add
+          {initialAgent ? 'Save' : 'Add'}
         </button>
       </div>
     </form>
