@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Message, ChatMessage, AgentConfig, MessageSender, GameState } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
+import { formatGameStatus } from '../utils/gameStatus';
 
 const STORAGE_KEY = 'openrouter_api_key';
 
@@ -100,7 +101,12 @@ export function useChat() {
       sender: MessageSender.System,
       content: 'Game has started! This is a test system message.',
     });
-  }, [addMessage]);
+
+    addMessage({
+      sender: MessageSender.System,
+      content: formatGameStatus(agents),
+    });
+  }, [addMessage, agents]);
 
   return {
     messages,
