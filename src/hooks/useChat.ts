@@ -1,14 +1,10 @@
 import { useState, useCallback } from 'react';
-import { Message, ChatMessage, AgentConfig, MessageSender, GameState } from '../types';
+import { Message, ChatMessage, AgentConfig, MessageSender, GameState, MafiaRole } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
-import { formatGameStatus } from '../utils/gameStatus';
+import { formatGameStatus, formatPlayersList } from '../utils/gameStatus';
+import { generateId, isMafia } from '../utils/helpers';
 
 const STORAGE_KEY = 'openrouter_api_key';
-
-function generateId(): string {
-  // Example output: "lkj2x3z-abc4def" (timestamp in base36 + random string)
-  return Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 9);
-}
 
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -116,16 +112,30 @@ export function useChat() {
     });
   }, [agents, addMessage]);
 
+  const mafiaWelcomeMessage = useCallback(() => {
+    const mafiaAgents = agents.filter((a) => isMafia(a.mafiaRole));
+    const don = agents.find((a) => a.mafiaRole === MafiaRole.Don);
+    const donInfo = don ? `\nThe Don is [${don.name}].` : '';
+    const welcomeMessage = `Welcome to the game! You are a mafia member. Your teammates are: ${mafiaAgents.map((a) => `[${a.name}]`).join(', ')}.${donInfo}`;
+    addMessage({
+      sender: MessageSender.System,
+      content: welcomeMessage,
+      mafia: true,
+    });
+  }, [agents, addMessage]);
+
   const startGame = useCallback(() => {
     setGameState(GameState.Started);
     
     addMessage({
       sender: MessageSender.System,
-      content: 'Game has started! This is a test system message.',
+      content: `Game has started! ${formatPlayersList(agents)}`,
     });
 
     gameStatusMessage();
-  }, [addMessage, agents, gameStatusMessage]);
+
+    mafiaWelcomeMessage();
+  }, [addMessage, agents, gameStatusMessage, mafiaWelcomeMessage]);
 
   const status = useCallback(() => {
     gameStatusMessage();
@@ -146,6 +156,8 @@ export function useChat() {
       content: 'Test 3 executed',
     });
   }, [addMessage]);
+
+
 
   return {
     messages,

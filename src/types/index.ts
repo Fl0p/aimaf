@@ -23,6 +23,8 @@ export interface Message {
   agentId?: string;
   agentName?: string;
   content: string;
+  secret?: boolean; // if true, the message is not visible to the player
+  mafia?: boolean; // if true, the message is visible to the mafia only
 }
 
 export interface ChatMessage extends Message {

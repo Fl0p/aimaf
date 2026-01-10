@@ -10,10 +10,11 @@ export function MessageBubble({ message, agentColor }: MessageBubbleProps) {
   const isSystem = message.sender === MessageSender.System;
   const isModerator = message.sender === MessageSender.Moderator;
   const isAgent = message.sender === MessageSender.Agent;
+  const isMafia = message.mafia === true;
 
   return (
     <div
-      className={`message ${isSystem ? 'message-system' : isModerator ? 'message-user' : 'message-agent'}`}
+      className={`message ${isSystem ? 'message-system' : isModerator ? 'message-user' : 'message-agent'} ${isMafia ? 'message-mafia' : ''}`}
       style={isAgent ? { borderLeftColor: agentColor } : undefined}
     >
       {!isSystem && (

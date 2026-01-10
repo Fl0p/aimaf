@@ -64,32 +64,28 @@ export function getGameStatus(agents: ChatAgent[]): GameStatus {
   return status;
 }
 
+export function formatPlayersList(agents: ChatAgent[]): string {
+  if (agents.length === 0) {
+    return 'No players in the game yet.';
+  }
+  
+  const allNames = agents.map(agent => `[${agent.name}]`).join(', ');
+  return `${agents.length} players:\n${allNames}`;
+}
+
 export function formatGameStatus(agents: ChatAgent[]): string {
   if (agents.length === 0) {
     return 'No players in the game yet.';
   }
 
+  const status = getGameStatus(agents);
   const lines: string[] = [];
   
-  // Total players
-  lines.push(`Total players: ${agents.length}`);
-  
   // Alive in the game (count by role)
-  const aliveAgents = agents.filter(agent => !agent.isDead);
-  if (aliveAgents.length > 0) {
-    const roleCounts: { [key: string]: number } = {};
-    aliveAgents.forEach(agent => {
-      // Don counts as mafia, detective/doctor count as civilian for display
-      let role = agent.mafiaRole;
-      if (role === MafiaRole.Don) {
-        role = MafiaRole.Mafia;
-      } else if (role === MafiaRole.Detective || role === MafiaRole.Doctor) {
-        role = MafiaRole.Civilian;
-      }
-      roleCounts[role] = (roleCounts[role] || 0) + 1;
-    });
-    
-    const roleStrings = Object.entries(roleCounts).map(([role, count]) => `${role}: ${count}`);
+  if (status.alive > 0) {
+    const roleStrings: string[] = [];
+    if (status.aliveMafia > 0) roleStrings.push(`${MafiaRole.Mafia}: ${status.aliveMafia}`);
+    if (status.aliveCivilians > 0) roleStrings.push(`${MafiaRole.Civilian}: ${status.aliveCivilians}`);
     lines.push(`Alive in the game: ${roleStrings.join(', ')}`);
   } else {
     lines.push('Alive in the game: none');

@@ -20,15 +20,41 @@ export class ChatAgent {
   }
 
   async generate(messages: Message[]): Promise<string> {
-    const modelMessages: ModelMessage[] = messages.map((m) => ({
-      role: m.sender === MessageSender.Moderator ? 'user' : 'assistant',
-      content: m.sender === MessageSender.Agent && m.agentName 
-        ? `[${m.agentName}]: ${m.content}` 
-        : m.content,
-    }));
-
+    const modelMessages = this.convertMessages(messages);
     const result = await this.agent.generate({ messages: modelMessages });
     return result.text;
+  }
+
+  private convertMessages(messages: Message[]): ModelMessage[] {
+    const result: ModelMessage[] = [
+      {
+        role: 'user',
+        content: `[System] Welcome to the game! ${this.name}, your role is ${this.mafiaRole}.`,
+      },
+    ];
+
+    for (const m of messages) {
+      // TODO: add filtering logic here
+
+      const isOwnMessage = m.sender === MessageSender.Agent && m.agentId === this.id;
+      const role = isOwnMessage ? 'assistant' : 'user';
+
+      let senderName: string;
+      if (m.sender === MessageSender.System) {
+        senderName = 'System';
+      } else if (m.sender === MessageSender.Moderator) {
+        senderName = 'Moderator';
+      } else {
+        senderName = m.agentName || 'Unknown';
+      }
+
+      result.push({
+        role,
+        content: `[${senderName}] ${m.content}`,
+      });
+    }
+
+    return result;
   }
 
   get id(): string {
