@@ -1,3 +1,9 @@
+export enum MessageSender {
+  System = 'system',
+  Moderator = 'moderator',
+  Agent = 'agent',
+}
+
 export enum MafiaRole {
   Mafia = 'mafia',
   Civilian = 'civilian',

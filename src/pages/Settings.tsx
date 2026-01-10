@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Header } from '../components/Header';
 import { OpenRouterModel } from '../types';
 import './Settings.css';
 
@@ -116,8 +117,10 @@ export function Settings() {
     .sort((a, b) => a.id.localeCompare(b.id));
 
   return (
-    <div className="settings">
-      <h1>Settings</h1>
+    <>
+      <Header showBack />
+      <div className="settings">
+        <h1>Settings</h1>
 
       <div className="settings-section">
         <label className="settings-label" htmlFor="api-key">
@@ -193,6 +196,7 @@ export function Settings() {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
