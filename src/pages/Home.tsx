@@ -1,4 +1,5 @@
 import { useChat } from '../hooks/useChat';
+import { Header } from '../components/Header';
 import { AgentPanel } from '../components/AgentPanel';
 import { ChatMessages } from '../components/ChatMessages';
 import { ChatInput } from '../components/ChatInput';
@@ -16,20 +17,28 @@ export function Home() {
     removeAgent,
   } = useChat();
 
+  const handleStart = () => {
+    // TODO: implement game start logic
+    console.log('Game started!');
+  };
+
   return (
-    <div className="home">
-      <AgentPanel
-        agents={agents}
-        isLoading={isLoading}
-        activeAgentId={activeAgentId}
-        onAgentClick={askAgent}
-        onAddAgent={addAgent}
-        onRemoveAgent={removeAgent}
-      />
-      <div className="chat-area">
-        <ChatMessages messages={messages} agents={agents} />
-        <ChatInput onSend={sendMessage} disabled={isLoading} />
+    <>
+      <Header onStart={handleStart} />
+      <div className="home">
+        <AgentPanel
+          agents={agents}
+          isLoading={isLoading}
+          activeAgentId={activeAgentId}
+          onAgentClick={askAgent}
+          onAddAgent={addAgent}
+          onRemoveAgent={removeAgent}
+        />
+        <div className="chat-area">
+          <ChatMessages messages={messages} agents={agents} />
+          <ChatInput onSend={sendMessage} disabled={isLoading} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
