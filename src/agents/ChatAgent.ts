@@ -1,8 +1,9 @@
-import { ToolLoopAgent, ModelMessage, ToolSet } from 'ai';
+import { ToolLoopAgent, ModelMessage, ToolSet, tool } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { AgentConfig, Message, MafiaRole, MessageSender } from '../types';
 import { MafiaPrompts } from './MafiaPrompts';
 import { isMafia } from '../utils/helpers';
+import { z } from 'zod';
 
 export class ChatAgent {
   private config: AgentConfig;
@@ -13,17 +14,85 @@ export class ChatAgent {
     this.config = config;
     const openrouter = createOpenRouter({ apiKey });
 
+    const tools = this.createTools();
+
     this.agent = new ToolLoopAgent({
       model: openrouter(this.config.model),
       instructions: MafiaPrompts.getSystemPrompt(this.config.mafiaRole, this.config.systemPrompt),
-      tools: {},
+      tools,
     });
   }
 
-  async generate(messages: Message[]): Promise<string> {
+  private createTools() {
+    const tools: Record<string, any> = {};
+
+    // Kill tool for Mafia
+    if (isMafia(this.config.mafiaRole)) {
+      tools.kill = tool({
+        description: 'Kill a player during the night. Only available to Mafia members.',
+        inputSchema: z.object({
+          playerName: z.string().describe('The name of the player to kill'),
+        }),
+        execute: async ({ playerName }: { playerName: string }) => {
+          return `[TOOL:kill] Attempting to kill player: ${playerName}`;
+        },
+      });
+    }
+
+    // Check tool for Detective
+    if (this.config.mafiaRole === MafiaRole.Detective) {
+      tools.check = tool({
+        description: 'Check if a player is Mafia during the night. Only available to Detective.',
+        inputSchema: z.object({
+          playerName: z.string().describe('The name of the player to check'),
+        }),
+        execute: async ({ playerName }: { playerName: string }) => {
+          return `[TOOL:check] Checking player: ${playerName}`;
+        },
+      });
+    }
+
+    // Save tool for Doctor
+    if (this.config.mafiaRole === MafiaRole.Doctor) {
+      tools.save = tool({
+        description: 'Save a player from being killed during the night. Only available to Doctor.',
+        inputSchema: z.object({
+          playerName: z.string().describe('The name of the player to save'),
+        }),
+        execute: async ({ playerName }: { playerName: string }) => {
+          return `[TOOL:save] Saving player: ${playerName}`;
+        },
+      });
+    }
+
+    return tools;
+  }
+
+  async generate(messages: Message[]): Promise<{ text: string; toolCalls?: Array<{ tool: string; args: Record<string, any> }> }> {
     const modelMessages = this.convertMessages(messages);
     const result = await this.agent.generate({ messages: modelMessages });
-    return this.filterOwnName(result.text);
+    
+    const toolCalls: Array<{ tool: string; args: Record<string, any> }> = [];
+    
+    // Extract tool calls from the result steps
+    if (result.steps) {
+      for (const step of result.steps) {
+        // Check tool calls in step content
+        for (const part of step.content) {
+          if (part.type === 'tool-call') {
+            toolCalls.push({
+              tool: part.toolName,
+              args: part.input as Record<string, any>,
+            });
+          }
+        }
+      }
+    }
+    
+    return {
+      text: this.filterOwnName(result.text),
+      toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+    };
   }
 
   private filterOwnName(text: string): string {

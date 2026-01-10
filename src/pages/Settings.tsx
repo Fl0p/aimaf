@@ -234,7 +234,7 @@ export function Settings() {
             className="settings-textarea"
             value={prompts.root}
             onChange={(e) => updatePrompt('root', e.target.value)}
-            rows={2}
+            rows={4}
           />
         </div>
 
@@ -244,7 +244,17 @@ export function Settings() {
             className="settings-textarea"
             value={prompts.generalRules}
             onChange={(e) => updatePrompt('generalRules', e.target.value)}
-            rows={3}
+            rows={4}
+          />
+        </div>
+
+        <div className="prompt-group">
+          <label className="prompt-label">Civilian Role</label>
+          <textarea
+            className="settings-textarea"
+            value={prompts[MafiaRole.Civilian]}
+            onChange={(e) => updatePrompt(MafiaRole.Civilian, e.target.value)}
+            rows={4}
           />
         </div>
 
@@ -264,17 +274,7 @@ export function Settings() {
             className="settings-textarea"
             value={prompts[MafiaRole.Don]}
             onChange={(e) => updatePrompt(MafiaRole.Don, e.target.value)}
-            rows={4}
-          />
-        </div>
-
-        <div className="prompt-group">
-          <label className="prompt-label">Civilian Role</label>
-          <textarea
-            className="settings-textarea"
-            value={prompts[MafiaRole.Civilian]}
-            onChange={(e) => updatePrompt(MafiaRole.Civilian, e.target.value)}
-            rows={4}
+            rows={5}
           />
         </div>
 
@@ -284,7 +284,7 @@ export function Settings() {
             className="settings-textarea"
             value={prompts[MafiaRole.Detective]}
             onChange={(e) => updatePrompt(MafiaRole.Detective, e.target.value)}
-            rows={4}
+            rows={5}
           />
         </div>
 
@@ -294,7 +294,7 @@ export function Settings() {
             className="settings-textarea"
             value={prompts[MafiaRole.Doctor]}
             onChange={(e) => updatePrompt(MafiaRole.Doctor, e.target.value)}
-            rows={4}
+            rows={5}
           />
         </div>
 

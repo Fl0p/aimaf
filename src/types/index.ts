@@ -26,6 +26,7 @@ export interface Message {
   pm?: boolean; // if true, the message is a private message
   mafia?: boolean; // if true, the message is visible to the mafia only
   tool?: string; // if set, the message is a tool call
+  toolArgs?: Record<string, any>; // arguments for the tool call
 }
 
 export interface ChatMessage extends Message {

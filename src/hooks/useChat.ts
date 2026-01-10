@@ -38,14 +38,111 @@ export function useChat() {
     });
   }, [addMessage]);
 
-  const callAgentInternal = useCallback(async (agent: ChatAgent): Promise<string> => {
+  const handleToolCall = useCallback((agent: ChatAgent, toolName: string, args: Record<string, any>) => {
+    const playerName = args.playerName as string;
+    
+    switch (toolName) {
+      case 'kill': {
+        const targetAgent = agents.find((a) => a.name === playerName);
+        if (!targetAgent) {
+          addMessage({
+            sender: MessageSender.System,
+            content: `[${agent.name}] tried to kill [${playerName}], but player not found.`,
+            mafia: true,
+          });
+          return;
+        }
+        
+        if (targetAgent.isDead) {
+          addMessage({
+            sender: MessageSender.System,
+            content: `[${agent.name}] tried to kill [${playerName}], but they are already dead.`,
+            mafia: true,
+          });
+          return;
+        }
+
+        addMessage({
+          sender: MessageSender.System,
+          content: `[${agent.name}] wants to kill [${playerName}].`,
+          mafia: true,
+        });
+        break;
+      }
+      
+      case 'check': {
+        const targetAgent = agents.find((a) => a.name === playerName);
+        if (!targetAgent) {
+          addMessage({
+            sender: MessageSender.System,
+            content: `[${agent.name}] tried to check [${playerName}], but player not found.`,
+            agentId: agent.id,
+            pm: true,
+          });
+          return;
+        }
+        
+        if (targetAgent.isDead) {
+          addMessage({
+            sender: MessageSender.System,
+            content: `[${agent.name}] tried to check [${playerName}], but they are already dead.`,
+            agentId: agent.id,
+            pm: true,
+          });
+          return;
+        }
+
+        const isMafiaPlayer = isMafia(targetAgent.mafiaRole);
+        addMessage({
+          sender: MessageSender.System,
+          content: `[${agent.name}] checked [${playerName}]. Result: ${isMafiaPlayer ? 'MAFIA' : 'NOT MAFIA'}`,
+          agentId: agent.id,
+          pm: true,
+        });
+        break;
+      }
+      
+      case 'save': {
+        const targetAgent = agents.find((a) => a.name === playerName);
+        if (!targetAgent) {
+          addMessage({
+            sender: MessageSender.System,
+            content: `[${agent.name}] tried to save [${playerName}], but player not found.`,
+            agentId: agent.id,
+            pm: true,
+          });
+          return;
+        }
+        
+        if (targetAgent.isDead) {
+          addMessage({
+            sender: MessageSender.System,
+            content: `[${agent.name}] tried to save [${playerName}], but they are already dead.`,
+            agentId: agent.id,
+            pm: true,
+          });
+          return;
+        }
+
+        addMessage({
+          sender: MessageSender.System,
+          content: `[${agent.name}] will save [${playerName}] tonight.`,
+          agentId: agent.id,
+          pm: true,
+        });
+        break;
+      }
+    }
+  }, [agents, addMessage]);
+
+  const callAgentInternal = useCallback(async (agent: ChatAgent): Promise<{ text: string; toolCalls?: Array<{ tool: string; args: Record<string, any> }> }> => {
     setIsLoading(true);
     setActiveAgentId(agent.id);
 
     try {
       const allMessages = messagesRef.current
-      const content = await agent.generate(allMessages);
-      return content;
+      const result = await agent.generate(allMessages);
+      return result;
     } catch (error) {
       console.error('Error calling API:', error);
       throw error;
@@ -73,13 +170,20 @@ export function useChat() {
     }
 
     try {
-      const content = await callAgentInternal(agent);
+      const result = await callAgentInternal(agent);
       addMessage({
         sender: MessageSender.Agent,
         agentId: agent.id,
         agentName: agent.name,
-        content,
+        content: result.text,
       });
+
+      // Handle tool calls
+      if (result.toolCalls) {
+        for (const toolCall of result.toolCalls) {
+          handleToolCall(agent, toolCall.tool, toolCall.args);
+        }
+      }
     } catch (error) {
       addMessage({
         sender: MessageSender.System,
@@ -87,7 +191,7 @@ export function useChat() {
       });
       alert('Error calling API. Check console for details.');
     }
-  }, [gameState, callAgentInternal, addMessage]);
+  }, [gameState, callAgentInternal, addMessage, handleToolCall]);
 
   const addAgent = useCallback((config: Omit<AgentConfig, 'id'>) => {
     const apiKey = localStorage.getItem(STORAGE_KEY);
@@ -109,6 +213,13 @@ export function useChat() {
     setAgents((prev) => prev.filter((a) => a.id !== agentId));
   }, []);
 
+  const gameStatusMessage = useCallback(() => {
+    addMessage({
+      sender: MessageSender.System,
+      content: formatGameStatus(agents),
+    });
+  }, [agents, addMessage]);
+
   const killAgent = useCallback((agentId: string) => {
     const agent = agents.find((a) => a.id === agentId);
     if (agent) {
@@ -121,19 +232,11 @@ export function useChat() {
       });
       gameStatusMessage();
     }
-  }, [agents, addMessage]);
+  }, [agents, addMessage, gameStatusMessage]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
   }, []);
-
-
-  const gameStatusMessage = useCallback(() => {
-    addMessage({
-      sender: MessageSender.System,
-      content: formatGameStatus(agents),
-    });
-  }, [agents, addMessage]);
 
   const welcomeMafiaMessage = useCallback(() => {
     const mafiaAgents = agents.filter((a) => isMafia(a.mafiaRole));
@@ -188,7 +291,7 @@ export function useChat() {
     welcomeDetectiveMessage();
     welcomeDoctorMessage();
 
-  }, [addMessage, agents, gameStatusMessage, welcomeMafiaMessage]);
+  }, [addMessage, agents, gameStatusMessage, welcomeMafiaMessage, welcomeDetectiveMessage, welcomeDoctorMessage]);
 
   const status = useCallback(() => {
     gameStatusMessage();
@@ -208,13 +311,20 @@ export function useChat() {
     // Call each agent sequentially
     for (const agent of shuffledAgents) {
       try {
-        const content = await callAgentInternal(agent);
+        const result = await callAgentInternal(agent);
         addMessage({
           sender: MessageSender.Agent,
           agentId: agent.id,
           agentName: agent.name,
-          content,
+          content: result.text,
         });
+
+        // Handle tool calls
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(agent, toolCall.tool, toolCall.args);
+          }
+        }
       } catch (error) {
         addMessage({
           sender: MessageSender.System,
@@ -227,7 +337,7 @@ export function useChat() {
       sender: MessageSender.System,
       content: 'Day round completed.',
     });
-  }, [agents, addMessage, callAgentInternal]);
+  }, [agents, addMessage, callAgentInternal, handleToolCall]);
 
   const roundNight = useCallback(async () => {
     const aliveMafia = agents.filter((a) => !a.isDead && isMafia(a.mafiaRole));
@@ -244,14 +354,21 @@ export function useChat() {
     // Call each mafia agent sequentially
     for (const agent of aliveMafia) {
       try {
-        const content = await callAgentInternal(agent);
+        const result = await callAgentInternal(agent);
         addMessage({
           sender: MessageSender.Agent,
           agentId: agent.id,
           agentName: agent.name,
-          content,
+          content: result.text,
           mafia: true,
         });
+
+        // Handle tool calls
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(agent, toolCall.tool, toolCall.args);
+          }
+        }
       } catch (error) {
         console.error('Error calling API:', error);
       }
@@ -266,14 +383,21 @@ export function useChat() {
         mafia: true,
       });
       try {
-        const content = await callAgentInternal(finalMafiaWord);
+        const result = await callAgentInternal(finalMafiaWord);
         addMessage({
           sender: MessageSender.Agent,
           agentId: finalMafiaWord.id,
           agentName: finalMafiaWord.name,
-          content,
+          content: result.text,
           mafia: true,
         });
+
+        // Handle tool calls
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(finalMafiaWord, toolCall.tool, toolCall.args);
+          }
+        }
       } catch (error) {
         console.error('Error calling API:', error);
       }
@@ -283,19 +407,26 @@ export function useChat() {
     if (detective) {
       addMessage({
         sender: MessageSender.System,
-        content: `[${detective.name}] (Detective) is investigating.`,
+        content: `[${detective.name}] Detective is investigating.`,
         agentId: detective.id,
         pm: true,
       });
       try {
-        const content = await callAgentInternal(detective);
+        const result = await callAgentInternal(detective);
         addMessage({
           sender: MessageSender.Agent,
           agentId: detective.id,
           agentName: detective.name,
-          content,
+          content: result.text,
           pm: true,
         });
+
+        // Handle tool calls
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(detective, toolCall.tool, toolCall.args);
+          }
+        }
       } catch (error) {
         console.error('Error calling API:', error);
       }
@@ -305,19 +436,26 @@ export function useChat() {
     if (doctor) {
       addMessage({
         sender: MessageSender.System,
-        content: `[${doctor.name}] (Doctor) is choosing who to save.`,
+        content: `[${doctor.name}] Doctor is choosing who to save.`,
         agentId: doctor.id,
         pm: true,
       });
       try {
-        const content = await callAgentInternal(doctor);
+        const result = await callAgentInternal(doctor);
         addMessage({
           sender: MessageSender.Agent,
           agentId: doctor.id,
           agentName: doctor.name,
-          content,
+          content: result.text,
           pm: true,
         });
+
+        // Handle tool calls
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(doctor, toolCall.tool, toolCall.args);
+          }
+        }
       } catch (error) {
         console.error('Error calling API:', error);
       }
@@ -328,7 +466,7 @@ export function useChat() {
       content: 'Night round completed.',
       mafia: true,
     });
-  }, [agents, addMessage, callAgentInternal]);
+  }, [agents, addMessage, callAgentInternal, handleToolCall]);
 
   const round = useCallback(async () => {
     if (gameState !== GameState.Started) {

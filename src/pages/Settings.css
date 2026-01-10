@@ -50,6 +50,8 @@
 .settings-buttons {
   display: flex;
   gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 24px;
 }
 
 .settings-button {
