@@ -14,18 +14,30 @@ export function MessageBubble({ message, agentColor }: MessageBubbleProps) {
 
   return (
     <div
-      className={`message ${isSystem ? 'message-system' : isModerator ? 'message-user' : 'message-agent'} ${isPrivate ? (isSystem ? 'message-private-system' : 'message-private') : ''}`}
+      className={`message ${isSystem ? 'message-system' : isModerator ? 'message-user' : 'message-agent'} ${isPrivate ? (isSystem ? 'message-private-system' : 'message-private') : ''} ${message.tool ? 'message-with-tool' : ''}`}
       style={isAgent ? { borderLeftColor: agentColor } : undefined}
     >
-      {!isSystem && (
-        <div
-          className="message-sender-name"
-          style={{ color: isModerator ? '#1976d2' : agentColor }}
-        >
-          {isModerator ? 'Moderator' : message.agentName}
+      {message.tool && (
+        <div className="message-tool-badge">
+          {message.tool}
         </div>
       )}
-      <div className="message-content">{message.content}</div>
+      <div className="message-main-content">
+        {!isSystem && (
+          <div
+            className="message-sender-name"
+            style={{ color: isModerator ? '#1976d2' : agentColor }}
+          >
+            {isModerator ? 'Moderator' : message.agentName}
+            {message.executionTime !== undefined && (
+              <span style={{ opacity: 0.9, fontWeight: 'normal', marginLeft: '8px' }}>
+                thought for {message.executionTime.toFixed(1)}s
+              </span>
+            )}
+          </div>
+        )}
+        <div className="message-content">{message.content}</div>
+      </div>
     </div>
   );
 }

@@ -27,6 +27,7 @@ export interface Message {
   mafia?: boolean; // if true, the message is visible to the mafia only
   tool?: string; // if set, the message is a tool call
   toolArgs?: Record<string, any>; // arguments for the tool call
+  executionTime?: number; // execution time in seconds
 }
 
 export interface ChatMessage extends Message {
@@ -46,4 +47,10 @@ export interface AgentConfig {
 export interface OpenRouterModel {
   id: string;
   name: string;
+}
+
+export interface AgentGenerateResult {
+  text: string;
+  executionTime: number;
+  toolCalls?: Array<{ tool: string; args: Record<string, any> }>;
 }

@@ -39,11 +39,35 @@
 }
 
 .message-private {
-  background-color: #cccccc;
+  background-color: #999999;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .message-private-system {
-  background-color: #eeeeee;
+  background-color: #bbbbbb;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-with-tool {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.message-tool-badge {
+  flex-shrink: 0;
+  background: #1976d2;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.message-main-content {
+  flex: 1;
+  min-width: 0;
 }

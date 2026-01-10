@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Message, ChatMessage, AgentConfig, MessageSender, GameState, MafiaRole } from '../types';
+import { Message, ChatMessage, AgentConfig, MessageSender, GameState, MafiaRole, AgentGenerateResult } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 import { formatGameStatus, formatPlayersList } from '../utils/gameStatus';
 import { generateId, isMafia } from '../utils/helpers';
+import { NightActions } from '../utils/NightActions';
 
 const STORAGE_KEY = 'openrouter_api_key';
 
@@ -14,6 +15,7 @@ export function useChat() {
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<GameState>(GameState.Initial);
   const [isDay, setIsDay] = useState(true);
+  const nightActionsRef = useRef(new NightActions());
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -43,106 +45,71 @@ export function useChat() {
     
     switch (toolName) {
       case 'kill': {
-        const targetAgent = agents.find((a) => a.name === playerName);
-        if (!targetAgent) {
-          addMessage({
-            sender: MessageSender.System,
-            content: `[${agent.name}] tried to kill [${playerName}], but player not found.`,
-            mafia: true,
-          });
-          return;
-        }
+        nightActionsRef.current.addAction({
+          agentId: agent.id,
+          agentName: agent.name,
+          actionType: 'kill',
+          targetName: playerName,
+        });
         
-        if (targetAgent.isDead) {
-          addMessage({
-            sender: MessageSender.System,
-            content: `[${agent.name}] tried to kill [${playerName}], but they are already dead.`,
-            mafia: true,
-          });
-          return;
-        }
-
         addMessage({
           sender: MessageSender.System,
           content: `[${agent.name}] wants to kill [${playerName}].`,
           mafia: true,
+          tool: toolName,
         });
         break;
       }
       
       case 'check': {
-        const targetAgent = agents.find((a) => a.name === playerName);
-        if (!targetAgent) {
-          addMessage({
-            sender: MessageSender.System,
-            content: `[${agent.name}] tried to check [${playerName}], but player not found.`,
-            agentId: agent.id,
-            pm: true,
-          });
-          return;
-        }
+        nightActionsRef.current.addAction({
+          agentId: agent.id,
+          agentName: agent.name,
+          actionType: 'check',
+          targetName: playerName,
+        });
         
-        if (targetAgent.isDead) {
-          addMessage({
-            sender: MessageSender.System,
-            content: `[${agent.name}] tried to check [${playerName}], but they are already dead.`,
-            agentId: agent.id,
-            pm: true,
-          });
-          return;
-        }
-
-        const isMafiaPlayer = isMafia(targetAgent.mafiaRole);
         addMessage({
           sender: MessageSender.System,
-          content: `[${agent.name}] checked [${playerName}]. Result: ${isMafiaPlayer ? 'MAFIA' : 'NOT MAFIA'}`,
+          content: `[${agent.name}] wants to check [${playerName}].`,
           agentId: agent.id,
           pm: true,
+          tool: toolName,
         });
         break;
       }
       
       case 'save': {
-        const targetAgent = agents.find((a) => a.name === playerName);
-        if (!targetAgent) {
-          addMessage({
-            sender: MessageSender.System,
-            content: `[${agent.name}] tried to save [${playerName}], but player not found.`,
-            agentId: agent.id,
-            pm: true,
-          });
-          return;
-        }
+        nightActionsRef.current.addAction({
+          agentId: agent.id,
+          agentName: agent.name,
+          actionType: 'save',
+          targetName: playerName,
+        });
         
-        if (targetAgent.isDead) {
-          addMessage({
-            sender: MessageSender.System,
-            content: `[${agent.name}] tried to save [${playerName}], but they are already dead.`,
-            agentId: agent.id,
-            pm: true,
-          });
-          return;
-        }
-
         addMessage({
           sender: MessageSender.System,
-          content: `[${agent.name}] will save [${playerName}] tonight.`,
+          content: `[${agent.name}] wants to save [${playerName}].`,
           agentId: agent.id,
           pm: true,
+          tool: toolName,
         });
         break;
       }
     }
-  }, [agents, addMessage]);
+  }, [addMessage]);
 
-  const callAgentInternal = useCallback(async (agent: ChatAgent): Promise<{ text: string; toolCalls?: Array<{ tool: string; args: Record<string, any> }> }> => {
+  const callAgentInternal = useCallback(async (agent: ChatAgent): Promise<AgentGenerateResult> => {
     setIsLoading(true);
     setActiveAgentId(agent.id);
 
     try {
+      const startTime = performance.now();
       const allMessages = messagesRef.current
       const result = await agent.generate(allMessages);
-      return result;
+      const endTime = performance.now();
+      const executionTime = (endTime - startTime) / 1000; // convert to seconds
+      return { ...result, executionTime };
     } catch (error) {
       console.error('Error calling API:', error);
       throw error;
@@ -176,6 +143,7 @@ export function useChat() {
         agentId: agent.id,
         agentName: agent.name,
         content: result.text,
+        executionTime: result.executionTime,
       });
 
       // Handle tool calls
@@ -317,6 +285,7 @@ export function useChat() {
           agentId: agent.id,
           agentName: agent.name,
           content: result.text,
+          executionTime: result.executionTime,
         });
 
         // Handle tool calls
@@ -347,11 +316,11 @@ export function useChat() {
     
     addMessage({
       sender: MessageSender.System,
-      content: `Night round started. Mafia members will act: ${aliveMafia.map((a) => `[${a.name}]`).join(', ')}`,
+      content: `Night round started. Mafia members will act: ${aliveMafia.map((a) => `[${a.name}]`).join(', ')}. Now you can discuss who to kill tonight.`,
       mafia: true,
     });
 
-    // Call each mafia agent sequentially
+    // Call each mafia agent sequentially (discussion phase - no tools)
     for (const agent of aliveMafia) {
       try {
         const result = await callAgentInternal(agent);
@@ -361,14 +330,10 @@ export function useChat() {
           agentName: agent.name,
           content: result.text,
           mafia: true,
+          executionTime: result.executionTime,
         });
 
-        // Handle tool calls
-        if (result.toolCalls) {
-          for (const toolCall of result.toolCalls) {
-            handleToolCall(agent, toolCall.tool, toolCall.args);
-          }
-        }
+        // Ignore tool calls during discussion phase
       } catch (error) {
         console.error('Error calling API:', error);
       }
@@ -379,7 +344,7 @@ export function useChat() {
     if (finalMafiaWord) {
       addMessage({
         sender: MessageSender.System,
-        content: `[${finalMafiaWord.name}] has the final word.`,
+        content: `[${finalMafiaWord.name}], now you can use the kill tool to make the final decision.`,
         mafia: true,
       });
       try {
@@ -390,9 +355,10 @@ export function useChat() {
           agentName: finalMafiaWord.name,
           content: result.text,
           mafia: true,
+          executionTime: result.executionTime,
         });
 
-        // Handle tool calls
+        // Handle tool calls only in decision phase
         if (result.toolCalls) {
           for (const toolCall of result.toolCalls) {
             handleToolCall(finalMafiaWord, toolCall.tool, toolCall.args);
@@ -419,6 +385,7 @@ export function useChat() {
           agentName: detective.name,
           content: result.text,
           pm: true,
+          executionTime: result.executionTime,
         });
 
         // Handle tool calls
@@ -448,6 +415,7 @@ export function useChat() {
           agentName: doctor.name,
           content: result.text,
           pm: true,
+          executionTime: result.executionTime,
         });
 
         // Handle tool calls
@@ -493,6 +461,54 @@ export function useChat() {
     }
   }, [agents, gameState, isDay, roundDay, roundNight]);
 
+  const processNightResults = useCallback(() => {
+    const results = nightActionsRef.current.processActions(agents);
+    
+    // Show check results to detectives
+    results.checks.forEach(check => {
+      addMessage({
+        sender: MessageSender.System,
+        content: `[${check.detective.name}] checked [${check.target.name}]. Result: ${check.isMafia ? 'MAFIA' : 'NOT MAFIA'}`,
+        agentId: check.detective.id,
+        pm: true,
+      });
+    });
+
+    // Show who was saved (only to doctor)
+    if (results.saved) {
+      const doctor = agents.find(a => a.mafiaRole === MafiaRole.Doctor && !a.isDead);
+      if (doctor) {
+        addMessage({
+          sender: MessageSender.System,
+          content: `You saved [${results.saved.name}] tonight.`,
+          agentId: doctor.id,
+          pm: true,
+        });
+      }
+    }
+
+    // Kill the target if not saved
+    if (results.killed) {
+      results.killed.isDead = true;
+      setAgents([...agents]);
+      
+      addMessage({
+        sender: MessageSender.System,
+        content: `[${results.killed.name}] (${results.killed.mafiaRole}) was killed during the night!`,
+      });
+    } else {
+      addMessage({
+        sender: MessageSender.System,
+        content: 'Nobody was killed during the night.',
+      });
+    }
+
+    // Clear night actions for next night
+    nightActionsRef.current.clear();
+    
+    gameStatusMessage();
+  }, [agents, addMessage, gameStatusMessage]);
+
   const toggleDayNight = useCallback(() => {
     if (gameState !== GameState.Started) {
       alert('Game has not started yet');
@@ -507,7 +523,12 @@ export function useChat() {
       content: `Time changed to ${newIsDay ? 'DAY' : 'NIGHT'}`,
     });
 
-  }, [gameState, isDay, addMessage]);
+    // If switching to day, process night results
+    if (newIsDay) {
+      processNightResults();
+    }
+
+  }, [gameState, isDay, addMessage, processNightResults]);
 
 
 

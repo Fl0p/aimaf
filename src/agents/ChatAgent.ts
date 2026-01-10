@@ -23,6 +23,10 @@ export class ChatAgent {
     });
   }
 
+  private createToolResponse(action: string, playerName: string): string {
+    return `[TOOL:${action}] Your request to ${action} player [${playerName}] has been accepted. The result will be known when the day comes.`;
+  }
+
   private createTools() {
     const tools: Record<string, any> = {};
 
@@ -34,7 +38,7 @@ export class ChatAgent {
           playerName: z.string().describe('The name of the player to kill'),
         }),
         execute: async ({ playerName }: { playerName: string }) => {
-          return `[TOOL:kill] Attempting to kill player: ${playerName}`;
+          return this.createToolResponse('kill', playerName);
         },
       });
     }
@@ -47,7 +51,7 @@ export class ChatAgent {
           playerName: z.string().describe('The name of the player to check'),
         }),
         execute: async ({ playerName }: { playerName: string }) => {
-          return `[TOOL:check] Checking player: ${playerName}`;
+          return this.createToolResponse('check', playerName);
         },
       });
     }
@@ -60,7 +64,7 @@ export class ChatAgent {
           playerName: z.string().describe('The name of the player to save'),
         }),
         execute: async ({ playerName }: { playerName: string }) => {
-          return `[TOOL:save] Saving player: ${playerName}`;
+          return this.createToolResponse('save', playerName);
         },
       });
     }
