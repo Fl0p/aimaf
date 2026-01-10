@@ -30,7 +30,7 @@ export function ChatMessages({ messages, agents }: ChatMessagesProps) {
       ) : (
         messages.map((message) => (
           <MessageBubble
-            key={message.timestamp}
+            key={message.id}
             message={message}
             agentColor={getAgentColor(message.agentId)}
           />

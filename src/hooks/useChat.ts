@@ -16,6 +16,7 @@ export function useChat() {
   const addMessage = useCallback((message: Message) => {
     const chatMessage: ChatMessage = {
       ...message,
+      id: generateId(),
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, chatMessage]);
@@ -27,6 +28,32 @@ export function useChat() {
       content,
     });
   }, [addMessage]);
+
+  const callAgentInternal = useCallback(async (agent: ChatAgent) => {
+    setIsLoading(true);
+    setActiveAgentId(agent.id);
+
+    try {
+      const content = await agent.generate(messages);
+
+      addMessage({
+        sender: MessageSender.Agent,
+        agentId: agent.id,
+        agentName: agent.name,
+        content,
+      });
+    } catch (error) {
+      console.error('Error calling API:', error);
+      addMessage({
+        sender: MessageSender.System,
+        content: `Error calling [${agent.name}]: ${error}`,
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+      setActiveAgentId(null);
+    }
+  }, [messages, addMessage]);
 
   const askAgent = useCallback(async (agent: ChatAgent) => {
     if (gameState !== GameState.Started) {
@@ -45,26 +72,12 @@ export function useChat() {
       return;
     }
 
-    setIsLoading(true);
-    setActiveAgentId(agent.id);
-
     try {
-      const content = await agent.generate(messages);
-
-      addMessage({
-        sender: MessageSender.Agent,
-        agentId: agent.id,
-        agentName: agent.name,
-        content,
-      });
+      await callAgentInternal(agent);
     } catch (error) {
-      console.error('Error calling API:', error);
       alert('Error calling API. Check console for details.');
-    } finally {
-      setIsLoading(false);
-      setActiveAgentId(null);
     }
-  }, [messages, addMessage]);
+  }, [gameState, callAgentInternal]);
 
   const addAgent = useCallback((config: Omit<AgentConfig, 'id'>) => {
     const apiKey = localStorage.getItem(STORAGE_KEY);
@@ -112,7 +125,7 @@ export function useChat() {
     });
   }, [agents, addMessage]);
 
-  const mafiaWelcomeMessage = useCallback(() => {
+  const welcomeMafiaMessage = useCallback(() => {
     const mafiaAgents = agents.filter((a) => isMafia(a.mafiaRole));
     const don = agents.find((a) => a.mafiaRole === MafiaRole.Don);
     const donInfo = don ? `\nThe Don is [${don.name}].` : '';
@@ -122,6 +135,32 @@ export function useChat() {
       content: welcomeMessage,
       mafia: true,
     });
+  }, [agents, addMessage]);
+
+  const welcomeDetectiveMessage = useCallback(() => {
+    const detective = agents.find((a) => a.mafiaRole === MafiaRole.Detective);
+    if (detective) {
+      const welcomeMessage = `Welcome to the game, [${detective.name}]! You are the Detective. Use your skills to find the mafia members.`;
+      addMessage({
+        sender: MessageSender.System,
+        content: welcomeMessage,
+        agentId: detective.id,
+        pm: true,
+      });
+    }
+  }, [agents, addMessage]);
+
+  const welcomeDoctorMessage = useCallback(() => {
+    const doctor = agents.find((a) => a.mafiaRole === MafiaRole.Doctor);
+    if (doctor) {
+      const welcomeMessage = `Welcome to the game, [${doctor.name}]! You are the Doctor. You can save one player each night.`;
+      addMessage({
+        sender: MessageSender.System,
+        content: welcomeMessage,
+        agentId: doctor.id,
+        pm: true,
+      });
+    }
   }, [agents, addMessage]);
 
   const startGame = useCallback(() => {
@@ -134,28 +173,74 @@ export function useChat() {
 
     gameStatusMessage();
 
-    mafiaWelcomeMessage();
-  }, [addMessage, agents, gameStatusMessage, mafiaWelcomeMessage]);
+    welcomeMafiaMessage();
+
+    welcomeDetectiveMessage();
+    welcomeDoctorMessage();
+    
+  }, [addMessage, agents, gameStatusMessage, welcomeMafiaMessage]);
 
   const status = useCallback(() => {
     gameStatusMessage();
   }, [gameStatusMessage]);
 
-  const test2 = useCallback(() => {
-    console.log('Test 2 called');
-    addMessage({
-      sender: MessageSender.System,
-      content: 'Test 2 executed',
-    });
-  }, [addMessage]);
+  const round = useCallback(async () => {
+    if (gameState !== GameState.Started) {
+      alert('Game has not started yet');
+      return;
+    }
 
-  const test3 = useCallback(() => {
-    console.log('Test 3 called');
+    const aliveAgents = agents.filter((a) => !a.isDead);
+    if (aliveAgents.length === 0) {
+      alert('No alive agents');
+      return;
+    }
+
+    const apiKey = localStorage.getItem(STORAGE_KEY);
+    if (!apiKey) {
+      alert('Please set OpenRouter API key in Settings');
+      return;
+    }
+
+    // Shuffle alive agents randomly
+    const shuffledAgents = [...aliveAgents].sort(() => Math.random() - 0.5);
+
     addMessage({
       sender: MessageSender.System,
-      content: 'Test 3 executed',
+      content: `Round started. Agents will speak in order: ${shuffledAgents.map((a) => `[${a.name}]`).join(', ')}`,
     });
-  }, [addMessage]);
+
+    // Call each agent sequentially
+    for (const agent of shuffledAgents) {
+      try {
+        await callAgentInternal(agent);
+      } catch (error) {
+        // Error already logged in callAgentInternal
+      }
+    }
+
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Round completed.',
+    });
+  }, [agents, gameState, addMessage, callAgentInternal]);
+
+  const [isDay, setIsDay] = useState(true);
+
+  const toggleDayNight = useCallback(() => {
+    if (gameState !== GameState.Started) {
+      alert('Game has not started yet');
+      return;
+    }
+
+    const newIsDay = !isDay;
+    setIsDay(newIsDay);
+    
+    addMessage({
+      sender: MessageSender.System,
+      content: `Time changed to ${newIsDay ? 'DAY' : 'NIGHT'}`,
+    });
+  }, [gameState, isDay, addMessage]);
 
 
 
@@ -165,6 +250,7 @@ export function useChat() {
     isLoading,
     activeAgentId,
     gameState,
+    isDay,
     sendMessage,
     askAgent,
     addAgent,
@@ -173,7 +259,7 @@ export function useChat() {
     clearMessages,
     startGame,
     status,
-    test2,
-    test3,
+    round,
+    toggleDayNight,
   };
 }

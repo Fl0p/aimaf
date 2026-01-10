@@ -2,6 +2,7 @@ import { ToolLoopAgent, ModelMessage, ToolSet } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { AgentConfig, Message, MafiaRole, MessageSender } from '../types';
 import { MafiaPrompts } from './MafiaPrompts';
+import { isMafia } from '../utils/helpers';
 
 export class ChatAgent {
   private config: AgentConfig;
@@ -22,7 +23,22 @@ export class ChatAgent {
   async generate(messages: Message[]): Promise<string> {
     const modelMessages = this.convertMessages(messages);
     const result = await this.agent.generate({ messages: modelMessages });
-    return result.text;
+    return this.filterOwnName(result.text);
+  }
+
+  private filterOwnName(text: string): string {
+    // Remove "[Name]" or "Name:" or "Name " at the start of the message
+    const patterns = [
+      new RegExp(`^\\[${this.name}\\]\\s*:?\\s*`, 'i'),
+      new RegExp(`^${this.name}\\s*:\\s*`, 'i'),
+    ];
+
+    let filtered = text;
+    for (const pattern of patterns) {
+      filtered = filtered.replace(pattern, '');
+    }
+
+    return filtered.trim();
   }
 
   private convertMessages(messages: Message[]): ModelMessage[] {
@@ -34,7 +50,15 @@ export class ChatAgent {
     ];
 
     for (const m of messages) {
-      // TODO: add filtering logic here
+      // Filter mafia messages: only mafia members can see them
+      if (m.mafia && !isMafia(this.mafiaRole)) {
+        continue;
+      }
+
+      // Filter private messages: only the recipient can see them
+      if (m.pm && m.agentId !== this.id) {
+        continue;
+      }
 
       const isOwnMessage = m.sender === MessageSender.Agent && m.agentId === this.id;
       const role = isOwnMessage ? 'assistant' : 'user';

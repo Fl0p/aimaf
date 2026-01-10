@@ -13,6 +13,7 @@ export function Home() {
     isLoading,
     activeAgentId,
     gameState,
+    isDay,
     sendMessage,
     askAgent,
     addAgent,
@@ -20,11 +21,12 @@ export function Home() {
     killAgent,
     startGame,
     status,
-    test2,
-    test3,
+    round,
+    toggleDayNight,
   } = useChat();
 
   const isInitial = gameState === GameState.Initial;
+  const isStarted = gameState === GameState.Started;
   const canStart = isInitial && agents.length >= 2;
 
   return (
@@ -32,10 +34,12 @@ export function Home() {
       <Header 
         onStart={startGame}
         onStatus={status}
-        onTest2={test2}
-        onTest3={test3}
+        onRound={round}
+        onToggleDayNight={toggleDayNight}
+        isDay={isDay}
         disableStart={!canStart}
         disableSettings={!isInitial}
+        disableDayNight={!isStarted}
       />
       <div className="home">
         <AgentPanel

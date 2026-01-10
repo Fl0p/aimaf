@@ -145,6 +145,7 @@ export function Settings() {
     <>
       <Header showBack />
       <div className="settings">
+        <div className="settings-content">
         <h1>Settings</h1>
 
       <div className="settings-section">
@@ -228,6 +229,16 @@ export function Settings() {
         </label>
 
         <div className="prompt-group">
+          <label className="prompt-label">Root Prompt</label>
+          <textarea
+            className="settings-textarea"
+            value={prompts.root}
+            onChange={(e) => updatePrompt('root', e.target.value)}
+            rows={2}
+          />
+        </div>
+
+        <div className="prompt-group">
           <label className="prompt-label">General Rules</label>
           <textarea
             className="settings-textarea"
@@ -295,7 +306,8 @@ export function Settings() {
             Reset to Default
           </button>
         </div>
-      </div>
+        </div>
+        </div>
       </div>
     </>
   );

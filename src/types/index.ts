@@ -23,11 +23,13 @@ export interface Message {
   agentId?: string;
   agentName?: string;
   content: string;
-  secret?: boolean; // if true, the message is not visible to the player
+  pm?: boolean; // if true, the message is a private message
   mafia?: boolean; // if true, the message is visible to the mafia only
+  tool?: string; // if set, the message is a tool call
 }
 
 export interface ChatMessage extends Message {
+  id: string;
   timestamp: number;
 }
 

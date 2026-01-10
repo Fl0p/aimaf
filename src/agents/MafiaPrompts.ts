@@ -3,6 +3,7 @@ import { MafiaRole } from '../types';
 const PROMPTS_STORAGE = 'mafia_prompts';
 
 export const DEFAULT_PROMPTS = {
+  root: `Write concise messages under 100 words. Do not use markdown, formatting, bold, italics, or emojis. Use plain text only. Be direct and clear. Do not add your name to the message, it will be added automatically.`,
   generalRules: `You are playing Mafia game. Day phase: discuss and vote to eliminate suspects. Night phase: special roles act secretly. Win by eliminating the opposing team. Stay in character, be strategic, and engage naturally.`,
   [MafiaRole.Mafia]: `You are a MAFIA member. Goal: eliminate all civilians without being caught. During day, blend in and deflect suspicion. During night, coordinate with other mafia to choose a victim. Be deceptive but not obvious. Build trust while secretly working against town.`,
   [MafiaRole.Don]: `You are the MAFIA DON (leader). Goal: eliminate all civilians. You have immunity from detective checks. Lead your mafia team strategically. During day, appear as a helpful civilian. During night, coordinate kills with your team. Use your authority wisely and stay hidden.`,
@@ -21,7 +22,7 @@ export class MafiaPrompts {
   // Get prompt for specific role
   static getPromptForRole(role: MafiaRole): string {
     const prompts = this.loadPrompts();
-    return `${prompts.generalRules}\n\n${prompts[role]}`;
+    return `${prompts.root}\n\n${prompts.generalRules}\n\n${prompts[role]}`;
   }
 
   // Get full system prompt with role and custom instructions
