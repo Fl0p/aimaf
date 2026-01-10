@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { Message, MessageSender } from '../types';
+import { Message } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
+import { ChatMessage } from './ChatMessage';
 import './ChatMessages.css';
 
 interface ChatMessagesProps {
@@ -28,18 +29,11 @@ export function ChatMessages({ messages, agents }: ChatMessagesProps) {
         </div>
       ) : (
         messages.map((message) => (
-          <div
+          <ChatMessage
             key={message.id}
-            className={`message ${message.sender === MessageSender.Moderator ? 'message-user' : 'message-agent'}`}
-          >
-            <div
-              className="message-sender-name"
-              style={{ color: message.sender === MessageSender.Moderator ? '#1976d2' : getAgentColor(message.agentId) }}
-            >
-              {message.sender === MessageSender.Moderator ? 'Moderator' : message.agentName}
-            </div>
-            <div className="message-content">{message.content}</div>
-          </div>
+            message={message}
+            agentColor={getAgentColor(message.agentId)}
+          />
         ))
       )}
       <div ref={messagesEndRef} />

@@ -28,10 +28,10 @@ function generateAgentName(): string {
 }
 
 const COLORS = [
-  '#4caf50', '#2196f3', '#ff9800', '#e91e63', '#9c27b0', '#00bcd4',
-  '#f44336', '#3f51b5', '#009688', '#ff5722', '#795548', '#607d8b',
-  '#8bc34a', '#03a9f4', '#ffc107', '#673ab7', '#cddc39', '#ff4081',
-  '#00e676', '#651fff', '#26a69a', '#ec407a', '#5c6bc0', '#ffca28',
+  '#cc1919', '#ea4122', '#ed851d', '#c3c323', '#909052', '#a4bf24',
+  '#7ae60f', '#7cc464', '#19b319', '#72da8c', '#0f9954', '#54c4a8',
+  '#24bcbc', '#0db9f2', '#699ed3', '#193ca3', '#5e5ec5', '#4310da',
+  '#ad7be0', '#9215bc', '#c16cc1', '#931b75', '#d66ba1', '#dd1346',
 ];
 const MODELS_STORAGE = 'selected_models';
 
