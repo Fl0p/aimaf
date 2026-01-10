@@ -1,12 +1,12 @@
 import { Message, MessageSender } from '../types';
-import './ChatMessage.css';
+import './MessageBubble.css';
 
-interface ChatMessageProps {
+interface MessageBubbleProps {
   message: Message;
   agentColor: string;
 }
 
-export function ChatMessage({ message, agentColor }: ChatMessageProps) {
+export function MessageBubble({ message, agentColor }: MessageBubbleProps) {
   const isSystem = message.sender === MessageSender.System;
   const isModerator = message.sender === MessageSender.Moderator;
   const isAgent = message.sender === MessageSender.Agent;

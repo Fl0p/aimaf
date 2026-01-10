@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { Message } from '../types';
+import { ChatMessage } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
-import { ChatMessage } from './ChatMessage';
+import { MessageBubble } from './MessageBubble';
 import './ChatMessages.css';
 
 interface ChatMessagesProps {
-  messages: Message[];
+  messages: ChatMessage[];
   agents: ChatAgent[];
 }
 
@@ -29,8 +29,8 @@ export function ChatMessages({ messages, agents }: ChatMessagesProps) {
         </div>
       ) : (
         messages.map((message) => (
-          <ChatMessage
-            key={message.id}
+          <MessageBubble
+            key={message.timestamp}
             message={message}
             agentColor={getAgentColor(message.agentId)}
           />

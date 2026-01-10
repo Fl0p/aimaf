@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Message, AgentConfig, MessageSender, GameState } from '../types';
+import { Message, ChatMessage, AgentConfig, MessageSender, GameState } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 
 const STORAGE_KEY = 'openrouter_api_key';
@@ -9,21 +9,26 @@ function generateId(): string {
 }
 
 export function useChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [agents, setAgents] = useState<ChatAgent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<GameState>(GameState.Initial);
 
-  const sendMessage = useCallback((content: string) => {
-    const message: Message = {
-      id: generateId(),
-      sender: MessageSender.Moderator,
-      content,
+  const addMessage = useCallback((message: Message) => {
+    const chatMessage: ChatMessage = {
+      ...message,
       timestamp: Date.now(),
     };
-    setMessages((prev) => [...prev, message]);
+    setMessages((prev) => [...prev, chatMessage]);
   }, []);
+
+  const sendMessage = useCallback((content: string) => {
+    addMessage({
+      sender: MessageSender.Moderator,
+      content,
+    });
+  }, [addMessage]);
 
   const askAgent = useCallback(async (agent: ChatAgent) => {
     const apiKey = localStorage.getItem(STORAGE_KEY);
@@ -38,16 +43,12 @@ export function useChat() {
     try {
       const content = await agent.generate(messages);
 
-      const agentMessage: Message = {
-        id: generateId(),
+      addMessage({
         sender: MessageSender.Agent,
         agentId: agent.id,
         agentName: agent.name,
         content,
-        timestamp: Date.now(),
-      };
-
-      setMessages((prev) => [...prev, agentMessage]);
+      });
     } catch (error) {
       console.error('Error calling API:', error);
       alert('Error calling API. Check console for details.');
@@ -55,7 +56,7 @@ export function useChat() {
       setIsLoading(false);
       setActiveAgentId(null);
     }
-  }, [messages]);
+  }, [messages, addMessage]);
 
   const addAgent = useCallback((config: Omit<AgentConfig, 'id'>) => {
     const apiKey = localStorage.getItem(STORAGE_KEY);
@@ -84,15 +85,11 @@ export function useChat() {
   const startGame = useCallback(() => {
     setGameState(GameState.Started);
     
-    const systemMessage: Message = {
-      id: generateId(),
+    addMessage({
       sender: MessageSender.System,
       content: 'Game has started! This is a test system message.',
-      timestamp: Date.now(),
-    };
-    
-    setMessages((prev) => [...prev, systemMessage]);
-  }, []);
+    });
+  }, [addMessage]);
 
   return {
     messages,
