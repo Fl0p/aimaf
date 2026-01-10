@@ -4,6 +4,7 @@ import { ChatAgent } from '../agents/ChatAgent';
 import { formatGameStatus, formatPlayersList } from '../utils/gameStatus';
 import { generateId, isMafia } from '../utils/helpers';
 import { NightActions } from '../utils/NightActions';
+import { DayActions } from '../utils/DayActions';
 
 const STORAGE_KEY = 'openrouter_api_key';
 
@@ -16,6 +17,7 @@ export function useChat() {
   const [gameState, setGameState] = useState<GameState>(GameState.Initial);
   const [isDay, setIsDay] = useState(true);
   const nightActionsRef = useRef(new NightActions());
+  const dayActionsRef = useRef(new DayActions());
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -92,6 +94,21 @@ export function useChat() {
           content: `@${agent.name} wants to save @${playerName}.`,
           agentId: agent.id,
           pm: true,
+          tool: toolName,
+        });
+        break;
+      }
+      
+      case 'vote': {
+        dayActionsRef.current.addVote({
+          voterId: agent.id,
+          voterName: agent.name,
+          targetName: playerName,
+        });
+        
+        addMessage({
+          sender: MessageSender.System,
+          content: `@${agent.name} votes to eliminate @${playerName}.`,
           tool: toolName,
         });
         break;
@@ -336,7 +353,7 @@ export function useChat() {
 
     addMessage({
       sender: MessageSender.System,
-      content: 'Day rounds completed. Let\'s vote to eliminate suspects. Use vote tool to vote for a suspect.',
+      content: 'Day rounds completed. Let\'s vote to eliminate suspects. Use the [vote] tool to vote for a suspect.',
     });
   }, [agents, addMessage, callAgentInternal, handleToolCall]);
 
@@ -376,7 +393,7 @@ export function useChat() {
     if (finalMafiaWord) {
       addMessage({
         sender: MessageSender.System,
-        content: `@${finalMafiaWord.name}, now you can use the kill tool to make the final decision.`,
+        content: `@${finalMafiaWord.name}, now you can use the [kill] tool to make the final decision.`,
         mafia: true,
       });
       try {
@@ -405,7 +422,7 @@ export function useChat() {
     if (detective) {
       addMessage({
         sender: MessageSender.System,
-        content: `@${detective.name} Detective is investigating.`,
+        content: `@${detective.name} Detective is investigating. use the [check] tool to check if a player is a mafia member.`,
         agentId: detective.id,
         pm: true,
       });
@@ -435,7 +452,7 @@ export function useChat() {
     if (doctor) {
       addMessage({
         sender: MessageSender.System,
-        content: `@${doctor.name} Doctor is choosing who to save.`,
+        content: `@${doctor.name} Doctor is choosing who to save. use the [save] tool to save a player.`,
         agentId: doctor.id,
         pm: true,
       });

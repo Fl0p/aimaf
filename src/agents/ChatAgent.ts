@@ -69,6 +69,17 @@ export class ChatAgent {
       });
     }
 
+    // Vote tool for all players during day
+    tools.vote = tool({
+      description: 'Vote to eliminate a player during the day. Available to all players after discussion rounds.',
+      inputSchema: z.object({
+        playerName: z.string().describe('The name of the player to vote for elimination'),
+      }),
+      execute: async ({ playerName }: { playerName: string }) => {
+        return this.createToolResponse('vote', playerName);
+      },
+    });
+
     return tools;
   }
 

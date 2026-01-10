@@ -26,18 +26,18 @@ export function Header({ onStart, onStatus, onRound, onToggleDayNight, isDay, sh
           >
             Start
           </button>
-          <button className="header-btn header-btn-debug" onClick={onStatus}>
-            Status
-          </button>
-          <button className="header-btn header-btn-debug" onClick={onRound}>
-            Round
-          </button>
           <button 
             className="header-btn header-btn-debug" 
             onClick={onToggleDayNight}
             disabled={disableDayNight}
           >
             {isDay ? 'Night' : 'Day'}
+          </button>
+          <button className="header-btn header-btn-debug" onClick={onRound}>
+            Round
+          </button>
+          <button className="header-btn header-btn-debug" onClick={onStatus}>
+            Status
           </button>
         </div>
       )}
