@@ -108,6 +108,30 @@ export function useChat() {
     });
   }, [addMessage, agents]);
 
+  const test1 = useCallback(() => {
+    console.log('Test 1 called');
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Test 1 executed',
+    });
+  }, [addMessage]);
+
+  const test2 = useCallback(() => {
+    console.log('Test 2 called');
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Test 2 executed',
+    });
+  }, [addMessage]);
+
+  const test3 = useCallback(() => {
+    console.log('Test 3 called');
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Test 3 executed',
+    });
+  }, [addMessage]);
+
   return {
     messages,
     agents,
@@ -120,5 +144,8 @@ export function useChat() {
     removeAgent,
     clearMessages,
     startGame,
+    test1,
+    test2,
+    test3,
   };
 }

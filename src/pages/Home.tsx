@@ -18,6 +18,9 @@ export function Home() {
     addAgent,
     removeAgent,
     startGame,
+    test1,
+    test2,
+    test3,
   } = useChat();
 
   const isInitial = gameState === GameState.Initial;
@@ -26,7 +29,10 @@ export function Home() {
   return (
     <>
       <Header 
-        onStart={isInitial ? startGame : undefined}
+        onStart={startGame}
+        onTest1={test1}
+        onTest2={test2}
+        onTest3={test3}
         disableStart={!canStart}
         disableSettings={!isInitial}
       />
