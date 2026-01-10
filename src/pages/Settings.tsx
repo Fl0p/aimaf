@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
-import { OpenRouterModel } from '../types';
+import { OpenRouterModel, MafiaRole } from '../types';
+import { DEFAULT_PROMPTS } from '../agents/MafiaPrompts';
 import './Settings.css';
 
 const API_KEY_STORAGE = 'openrouter_api_key';
 const MODELS_STORAGE = 'selected_models';
+const PROMPTS_STORAGE = 'mafia_prompts';
 
 interface ApiModel {
   id: string;
@@ -22,6 +24,9 @@ export function Settings() {
   const [loadingModels, setLoadingModels] = useState(false);
   const [search, setSearch] = useState('');
 
+  const [prompts, setPrompts] = useState(DEFAULT_PROMPTS);
+  const [promptsSaved, setPromptsSaved] = useState(false);
+
   useEffect(() => {
     const storedKey = localStorage.getItem(API_KEY_STORAGE);
     if (storedKey) {
@@ -31,6 +36,11 @@ export function Settings() {
     const storedModels = localStorage.getItem(MODELS_STORAGE);
     if (storedModels) {
       setSelectedModels(JSON.parse(storedModels));
+    }
+
+    const storedPrompts = localStorage.getItem(PROMPTS_STORAGE);
+    if (storedPrompts) {
+      setPrompts(JSON.parse(storedPrompts));
     }
   }, []);
 
@@ -116,6 +126,21 @@ export function Settings() {
     )
     .sort((a, b) => a.id.localeCompare(b.id));
 
+  const handleSavePrompts = () => {
+    localStorage.setItem(PROMPTS_STORAGE, JSON.stringify(prompts));
+    setPromptsSaved(true);
+    setTimeout(() => setPromptsSaved(false), 2000);
+  };
+
+  const handleResetPrompts = () => {
+    setPrompts(DEFAULT_PROMPTS);
+    localStorage.setItem(PROMPTS_STORAGE, JSON.stringify(DEFAULT_PROMPTS));
+  };
+
+  const updatePrompt = (key: string, value: string) => {
+    setPrompts({ ...prompts, [key]: value });
+  };
+
   return (
     <>
       <Header showBack />
@@ -195,6 +220,81 @@ export function Settings() {
             </div>
           </>
         )}
+      </div>
+
+      <div className="settings-section">
+        <label className="settings-label">
+          Game Prompts <span className="settings-hint">(customize AI behavior)</span>
+        </label>
+
+        <div className="prompt-group">
+          <label className="prompt-label">General Rules</label>
+          <textarea
+            className="settings-textarea"
+            value={prompts.generalRules}
+            onChange={(e) => updatePrompt('generalRules', e.target.value)}
+            rows={3}
+          />
+        </div>
+
+        <div className="prompt-group">
+          <label className="prompt-label">Mafia Role</label>
+          <textarea
+            className="settings-textarea"
+            value={prompts[MafiaRole.Mafia]}
+            onChange={(e) => updatePrompt(MafiaRole.Mafia, e.target.value)}
+            rows={4}
+          />
+        </div>
+
+        <div className="prompt-group">
+          <label className="prompt-label">Don Role</label>
+          <textarea
+            className="settings-textarea"
+            value={prompts[MafiaRole.Don]}
+            onChange={(e) => updatePrompt(MafiaRole.Don, e.target.value)}
+            rows={4}
+          />
+        </div>
+
+        <div className="prompt-group">
+          <label className="prompt-label">Civilian Role</label>
+          <textarea
+            className="settings-textarea"
+            value={prompts[MafiaRole.Civilian]}
+            onChange={(e) => updatePrompt(MafiaRole.Civilian, e.target.value)}
+            rows={4}
+          />
+        </div>
+
+        <div className="prompt-group">
+          <label className="prompt-label">Detective Role</label>
+          <textarea
+            className="settings-textarea"
+            value={prompts[MafiaRole.Detective]}
+            onChange={(e) => updatePrompt(MafiaRole.Detective, e.target.value)}
+            rows={4}
+          />
+        </div>
+
+        <div className="prompt-group">
+          <label className="prompt-label">Doctor Role</label>
+          <textarea
+            className="settings-textarea"
+            value={prompts[MafiaRole.Doctor]}
+            onChange={(e) => updatePrompt(MafiaRole.Doctor, e.target.value)}
+            rows={4}
+          />
+        </div>
+
+        <div className="settings-buttons">
+          <button className="settings-button" onClick={handleSavePrompts}>
+            {promptsSaved ? 'Saved!' : 'Save Prompts'}
+          </button>
+          <button className="settings-button settings-button-secondary" onClick={handleResetPrompts}>
+            Reset to Default
+          </button>
+        </div>
       </div>
       </div>
     </>
