@@ -14,7 +14,7 @@ export enum MafiaRole {
 
 export interface Message {
   id: string;
-  role: 'user' | 'agent';
+  sender: MessageSender;
   agentId?: string;
   agentName?: string;
   content: string;
@@ -34,8 +34,3 @@ export interface OpenRouterModel {
   id: string;
   name: string;
 }
-
-export type ChatMessage = {
-  role: 'user' | 'assistant';
-  content: string;
-};
