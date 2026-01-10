@@ -79,11 +79,17 @@ export function formatGameStatus(agents: ChatAgent[]): string {
   if (aliveAgents.length > 0) {
     const roleCounts: { [key: string]: number } = {};
     aliveAgents.forEach(agent => {
-      const role = agent.mafiaRole;
+      // Don counts as mafia, detective/doctor count as civilian for display
+      let role = agent.mafiaRole;
+      if (role === MafiaRole.Don) {
+        role = MafiaRole.Mafia;
+      } else if (role === MafiaRole.Detective || role === MafiaRole.Doctor) {
+        role = MafiaRole.Civilian;
+      }
       roleCounts[role] = (roleCounts[role] || 0) + 1;
     });
     
-    const roleStrings = Object.entries(roleCounts).map(([role, count]) => `${role}(s): ${count}`);
+    const roleStrings = Object.entries(roleCounts).map(([role, count]) => `${role}: ${count}`);
     lines.push(`Alive in the game: ${roleStrings.join(', ')}`);
   } else {
     lines.push('Alive in the game: none');

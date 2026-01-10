@@ -31,7 +31,7 @@ const NAME_SUFFIXES = [
   'King', 'Lord', 'Duke', 'Baron', 'Knight', 'Guard', 'Blade', 'Shield',
 ];
 
-function generateAgentName(): string {
+export function generateAgentName(): string {
   const prefix = NAME_PREFIXES[Math.floor(Math.random() * NAME_PREFIXES.length)];
   const suffix = NAME_SUFFIXES[Math.floor(Math.random() * NAME_SUFFIXES.length)];
   return `${prefix}${suffix}`;
@@ -45,7 +45,7 @@ const COLORS = [
 ];
 const MODELS_STORAGE = 'selected_models';
 
-function randomColor(): string {
+export function randomColor(): string {
   return COLORS[Math.floor(Math.random() * COLORS.length)];
 }
 
