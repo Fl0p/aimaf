@@ -42,7 +42,7 @@ export function Home() {
           agents={agents}
           isLoading={isLoading}
           activeAgentId={activeAgentId}
-          onAgentClick={askAgent}
+          onAskAgent={askAgent}
           onAddAgent={addAgent}
           onRemoveAgent={removeAgent}
           onKillAgent={killAgent}

@@ -9,7 +9,7 @@ interface AgentPanelProps {
   agents: ChatAgent[];
   isLoading: boolean;
   activeAgentId: string | null;
-  onAgentClick: (agent: ChatAgent) => void;
+  onAskAgent: (agent: ChatAgent) => void;
   onAddAgent: (config: Omit<AgentConfig, 'id'>) => void;
   onRemoveAgent: (agentId: string) => void;
   onKillAgent: (agentId: string) => void;
@@ -20,18 +20,36 @@ export function AgentPanel({
   agents,
   isLoading,
   activeAgentId,
-  onAgentClick,
+  onAskAgent,
   onAddAgent,
   onRemoveAgent,
   onKillAgent,
   gameState,
 }: AgentPanelProps) {
   const [showForm, setShowForm] = useState(false);
+  const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
   const isInitial = gameState === GameState.Initial;
+
+  const onAgentClick = (agent: ChatAgent) => {
+    if (isInitial) {
+      setEditingAgentId(agent.id);
+    } else {
+      onAskAgent(agent);
+    }
+  };
 
   const handleAddAgent = (config: Omit<AgentConfig, 'id'>) => {
     onAddAgent(config);
     setShowForm(false);
+  };
+
+  const handleEditAgent = (config: Omit<AgentConfig, 'id'>) => {
+    if (editingAgentId) {
+      // Remove old agent and add updated one
+      onRemoveAgent(editingAgentId);
+      onAddAgent(config);
+      setEditingAgentId(null);
+    }
   };
 
   const handleX = (agentId: string) => {
@@ -41,6 +59,8 @@ export function AgentPanel({
       onKillAgent(agentId);
     }
   };
+
+  const editingAgent = editingAgentId ? agents.find(a => a.id === editingAgentId) : null;
 
   return (
     <div className="agent-panel">
@@ -58,7 +78,14 @@ export function AgentPanel({
         ))}
       </div>
       {isInitial && (
-        showForm ? (
+        editingAgent ? (
+          <AgentForm 
+            onSubmit={handleEditAgent} 
+            onCancel={() => setEditingAgentId(null)}
+            existingAgents={agents}
+            initialAgent={editingAgent}
+          />
+        ) : showForm ? (
           <AgentForm 
             onSubmit={handleAddAgent} 
             onCancel={() => setShowForm(false)}
