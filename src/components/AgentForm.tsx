@@ -44,7 +44,7 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
   const initialColor = useMemo(() => randomColor(), []);
   const [name, setName] = useState('');
   const [model, setModel] = useState('');
-  const [systemPrompt, setSystemPrompt] = useState('You are a helpful assistant.');
+  const [systemPrompt, setSystemPrompt] = useState('');
   const [color, setColor] = useState(initialColor);
   const [mafiaRole, setMafiaRole] = useState<MafiaRole>(MafiaRole.Civilian);
   const [availableModels, setAvailableModels] = useState<OpenRouterModel[]>([]);
@@ -109,7 +109,7 @@ export function AgentForm({ onSubmit, onCancel }: AgentFormProps) {
         <textarea
           value={systemPrompt}
           onChange={(e) => setSystemPrompt(e.target.value)}
-          placeholder="Instructions for the agent..."
+          placeholder="Additional instructions for the agent..."
           rows={3}
         />
       </div>

@@ -1,6 +1,10 @@
 .settings {
   padding: 24px;
-  max-width: 600px;
+  max-width: 800px;
+  margin: 0 auto;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .settings h1 {
@@ -125,4 +129,41 @@
 .model-id {
   font-size: 13px;
   font-family: monospace;
+}
+
+.settings-textarea {
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.settings-textarea:focus {
+  outline: none;
+  border-color: #61dafb;
+}
+
+.prompt-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.prompt-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+.settings-button-secondary {
+  background-color: #888;
+  color: white;
+}
+
+.settings-button-secondary:hover {
+  background-color: #666;
 }
