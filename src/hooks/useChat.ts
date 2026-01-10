@@ -5,7 +5,8 @@ import { ChatAgent } from '../agents/ChatAgent';
 const STORAGE_KEY = 'openrouter_api_key';
 
 function generateId(): string {
-  return Math.random().toString(36).substring(2, 9);
+  // Example output: "lkj2x3z-abc4def" (timestamp in base36 + random string)
+  return Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 9);
 }
 
 export function useChat() {
@@ -31,6 +32,16 @@ export function useChat() {
   }, [addMessage]);
 
   const askAgent = useCallback(async (agent: ChatAgent) => {
+    if (gameState !== GameState.Started) {
+      alert('Game has not started yet');
+      return;
+    }
+
+    if (agent.isDead) {
+      alert('Agent is dead');
+      return;
+    }
+
     const apiKey = localStorage.getItem(STORAGE_KEY);
     if (!apiKey) {
       alert('Please set OpenRouter API key in Settings');

@@ -5,6 +5,7 @@ import { AgentConfig, Message, MafiaRole, MessageSender } from '../types';
 export class ChatAgent {
   private config: AgentConfig;
   private agent: ToolLoopAgent<never, ToolSet>;
+  private _isDead: boolean = false;
 
   constructor(config: AgentConfig, apiKey: string) {
     this.config = config;
@@ -51,6 +52,10 @@ export class ChatAgent {
 
   get mafiaRole(): MafiaRole {
     return this.config.mafiaRole;
+  }
+
+  get isDead(): boolean {
+    return this._isDead;
   }
 
   toJSON(): AgentConfig {

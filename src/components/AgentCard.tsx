@@ -28,6 +28,7 @@ interface AgentCardProps {
 
 export function AgentCard({ agent, isActive, disabled, onClick, onRemove }: AgentCardProps) {
   const backgroundColor = ROLE_COLORS[agent.mafiaRole] || '#fff';
+  const statusColor = agent.isDead ? '⚫' : (isActive ? '🟢' : '⚪');
 
   return (
     <div
@@ -36,7 +37,7 @@ export function AgentCard({ agent, isActive, disabled, onClick, onRemove }: Agen
       onClick={() => !disabled && onClick()}
     >
       <div className="agent-card-name">
-        <span className="agent-status">⚪</span>
+        <span className="agent-status">{statusColor}</span>
         <span className="agent-role-emoji">{ROLE_EMOJI[agent.mafiaRole]}</span>
         {agent.name}
       </div>

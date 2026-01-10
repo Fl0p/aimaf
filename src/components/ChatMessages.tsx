@@ -25,7 +25,7 @@ export function ChatMessages({ messages, agents }: ChatMessagesProps) {
     <div className="chat-messages">
       {messages.length === 0 ? (
         <div className="chat-empty">
-          Send a message to start the conversation
+          Send a message to add some initial story or context
         </div>
       ) : (
         messages.map((message) => (
