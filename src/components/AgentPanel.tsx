@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AgentConfig } from '../types';
+import { AgentConfig, GameState } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 import { AgentForm } from './AgentForm';
 import { AgentCard } from './AgentCard';
@@ -12,7 +12,8 @@ interface AgentPanelProps {
   onAgentClick: (agent: ChatAgent) => void;
   onAddAgent: (config: Omit<AgentConfig, 'id'>) => void;
   onRemoveAgent: (agentId: string) => void;
-  disabled?: boolean;
+  onKillAgent: (agentId: string) => void;
+  gameState: GameState;
 }
 
 export function AgentPanel({
@@ -22,13 +23,23 @@ export function AgentPanel({
   onAgentClick,
   onAddAgent,
   onRemoveAgent,
-  disabled = false,
+  onKillAgent,
+  gameState,
 }: AgentPanelProps) {
   const [showForm, setShowForm] = useState(false);
+  const isInitial = gameState === GameState.Initial;
 
   const handleAddAgent = (config: Omit<AgentConfig, 'id'>) => {
     onAddAgent(config);
     setShowForm(false);
+  };
+
+  const handleX = (agentId: string) => {
+    if (isInitial) {
+      onRemoveAgent(agentId);
+    } else {
+      onKillAgent(agentId);
+    }
   };
 
   return (
@@ -42,13 +53,17 @@ export function AgentPanel({
             isActive={activeAgentId === agent.id}
             disabled={isLoading}
             onClick={() => onAgentClick(agent)}
-            onRemove={disabled ? undefined : () => onRemoveAgent(agent.id)}
+            onX={() => handleX(agent.id)}
           />
         ))}
       </div>
-      {!disabled && (
+      {isInitial && (
         showForm ? (
-          <AgentForm onSubmit={handleAddAgent} onCancel={() => setShowForm(false)} />
+          <AgentForm 
+            onSubmit={handleAddAgent} 
+            onCancel={() => setShowForm(false)}
+            existingAgents={agents}
+          />
         ) : (
           <button className="agent-add-btn" onClick={() => setShowForm(true)}>
             + Add Agent

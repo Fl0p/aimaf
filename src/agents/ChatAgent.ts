@@ -59,6 +59,10 @@ export class ChatAgent {
     return this._isDead;
   }
 
+  set isDead(value: boolean) {
+    this._isDead = value;
+  }
+
   toJSON(): AgentConfig {
     return { ...this.config };
   }

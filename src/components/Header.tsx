@@ -3,7 +3,7 @@ import './Header.css';
 
 interface HeaderProps {
   onStart?: () => void;
-  onTest1?: () => void;
+  onStatus?: () => void;
   onTest2?: () => void;
   onTest3?: () => void;
   showBack?: boolean;
@@ -11,7 +11,7 @@ interface HeaderProps {
   disableStart?: boolean;
 }
 
-export function Header({ onStart, onTest1, onTest2, onTest3, showBack, disableSettings, disableStart }: HeaderProps) {
+export function Header({ onStart, onStatus, onTest2, onTest3, showBack, disableSettings, disableStart }: HeaderProps) {
   return (
     <header className="header">
       <Link to="/" className="header-logo">AIMAF</Link>
@@ -23,8 +23,8 @@ export function Header({ onStart, onTest1, onTest2, onTest3, showBack, disableSe
         >
           Start
         </button>
-        <button className="header-btn header-btn-debug" onClick={onTest1}>
-          Test1
+        <button className="header-btn header-btn-debug" onClick={onStatus}>
+          Status
         </button>
         <button className="header-btn header-btn-debug" onClick={onTest2}>
           Test2

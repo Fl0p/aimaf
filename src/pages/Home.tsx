@@ -17,20 +17,21 @@ export function Home() {
     askAgent,
     addAgent,
     removeAgent,
+    killAgent,
     startGame,
-    test1,
+    status,
     test2,
     test3,
   } = useChat();
 
   const isInitial = gameState === GameState.Initial;
-  const canStart = agents.length >= 2;
+  const canStart = isInitial && agents.length >= 2;
 
   return (
     <>
       <Header 
         onStart={startGame}
-        onTest1={test1}
+        onStatus={status}
         onTest2={test2}
         onTest3={test3}
         disableStart={!canStart}
@@ -44,7 +45,8 @@ export function Home() {
           onAgentClick={askAgent}
           onAddAgent={addAgent}
           onRemoveAgent={removeAgent}
-          disabled={!isInitial}
+          onKillAgent={killAgent}
+          gameState={gameState}
         />
         <div className="chat-area">
           <ChatMessages messages={messages} agents={agents} />

@@ -65,39 +65,37 @@ export function getGameStatus(agents: ChatAgent[]): GameStatus {
 }
 
 export function formatGameStatus(agents: ChatAgent[]): string {
-  const status = getGameStatus(agents);
-
-  if (status.total === 0) {
+  if (agents.length === 0) {
     return 'No players in the game yet.';
   }
 
-  const totalLine = `Total players: ${status.total} (alive: ${status.alive}, dead: ${status.dead})`;
+  const lines: string[] = [];
   
-  const roleParts: string[] = [];
-  roleParts.push(`Mafia: ${status.mafia} (alive: ${status.aliveMafia})`);
-  roleParts.push(`Civilians: ${status.civilians} (alive: ${status.aliveCivilians})`);
+  // Total players
+  lines.push(`Total players: ${agents.length}`);
   
-  if (status.detectives > 0) {
-    roleParts.push(`Detectives: ${status.detectives}`);
+  // Alive in the game (count by role)
+  const aliveAgents = agents.filter(agent => !agent.isDead);
+  if (aliveAgents.length > 0) {
+    const roleCounts: { [key: string]: number } = {};
+    aliveAgents.forEach(agent => {
+      const role = agent.mafiaRole;
+      roleCounts[role] = (roleCounts[role] || 0) + 1;
+    });
+    
+    const roleStrings = Object.entries(roleCounts).map(([role, count]) => `${role}(s): ${count}`);
+    lines.push(`Alive in the game: ${roleStrings.join(', ')}`);
+  } else {
+    lines.push('Alive in the game: none');
   }
-
-  if (status.doctors > 0) {
-    roleParts.push(`Doctors: ${status.doctors}`);
-  }
-
-  if (status.dons > 0) {
-    roleParts.push(`Dons: ${status.dons}`);
-  }
-
-  const roleLine = `By Role: ${roleParts.join(', ')}`;
-
-  const lines = [totalLine, roleLine];
-
-  // Check win conditions
-  if (status.aliveMafia === 0 && status.alive > 0) {
-    lines.push('Civilians win!');
-  } else if (status.aliveMafia >= status.aliveCivilians && status.alive > 0) {
-    lines.push('Mafia wins!');
+  
+  // Dead list (names and roles)
+  const deadAgents = agents.filter(agent => agent.isDead);
+  if (deadAgents.length > 0) {
+    const deadList = deadAgents.map(agent => `[${agent.name}] - ${agent.mafiaRole}`).join(', ');
+    lines.push(`Dead list: ${deadList}`);
+  } else {
+    lines.push('Dead list: none');
   }
 
   return lines.join('\n');
