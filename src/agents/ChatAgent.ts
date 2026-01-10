@@ -45,7 +45,7 @@ export class ChatAgent {
     const result: ModelMessage[] = [
       {
         role: 'user',
-        content: `[System] Welcome to the game! ${this.name}, your role is ${this.mafiaRole}.`,
+        content: `[System] [${this.name}] joined the game. Your role is ${this.mafiaRole}.`,
       },
     ];
 
@@ -78,6 +78,8 @@ export class ChatAgent {
       });
     }
 
+    console.log(` My name is [${this.name}] and my role is [${this.mafiaRole}]`);
+    console.log(` My messages are: ${JSON.stringify(result, null, 2)}`);
     return result;
   }
 

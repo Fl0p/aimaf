@@ -42,3 +42,8 @@
   background-color: #cccccc;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.message-private-system {
+  background-color: #eeeeee;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

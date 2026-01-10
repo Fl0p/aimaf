@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Message, ChatMessage, AgentConfig, MessageSender, GameState, MafiaRole } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 import { formatGameStatus, formatPlayersList } from '../utils/gameStatus';
@@ -8,10 +8,17 @@ const STORAGE_KEY = 'openrouter_api_key';
 
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const messagesRef = useRef<ChatMessage[]>([]);
   const [agents, setAgents] = useState<ChatAgent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<GameState>(GameState.Initial);
+  const [isDay, setIsDay] = useState(true);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const addMessage = useCallback((message: Message) => {
     const chatMessage: ChatMessage = {
@@ -19,7 +26,9 @@ export function useChat() {
       id: generateId(),
       timestamp: Date.now(),
     };
-    setMessages((prev) => [...prev, chatMessage]);
+    // Update ref synchronously so next callAgentInternal sees new message
+    messagesRef.current = [...messagesRef.current, chatMessage];
+    setMessages(messagesRef.current);
   }, []);
 
   const sendMessage = useCallback((content: string) => {
@@ -29,31 +38,22 @@ export function useChat() {
     });
   }, [addMessage]);
 
-  const callAgentInternal = useCallback(async (agent: ChatAgent) => {
+  const callAgentInternal = useCallback(async (agent: ChatAgent): Promise<string> => {
     setIsLoading(true);
     setActiveAgentId(agent.id);
 
     try {
-      const content = await agent.generate(messages);
-
-      addMessage({
-        sender: MessageSender.Agent,
-        agentId: agent.id,
-        agentName: agent.name,
-        content,
-      });
+      const allMessages = messagesRef.current
+      const content = await agent.generate(allMessages);
+      return content;
     } catch (error) {
       console.error('Error calling API:', error);
-      addMessage({
-        sender: MessageSender.System,
-        content: `Error calling [${agent.name}]: ${error}`,
-      });
       throw error;
     } finally {
       setIsLoading(false);
       setActiveAgentId(null);
     }
-  }, [messages, addMessage]);
+  }, []);
 
   const askAgent = useCallback(async (agent: ChatAgent) => {
     if (gameState !== GameState.Started) {
@@ -73,11 +73,21 @@ export function useChat() {
     }
 
     try {
-      await callAgentInternal(agent);
+      const content = await callAgentInternal(agent);
+      addMessage({
+        sender: MessageSender.Agent,
+        agentId: agent.id,
+        agentName: agent.name,
+        content,
+      });
     } catch (error) {
+      addMessage({
+        sender: MessageSender.System,
+        content: `Error calling [${agent.name}]: ${error}`,
+      });
       alert('Error calling API. Check console for details.');
     }
-  }, [gameState, callAgentInternal]);
+  }, [gameState, callAgentInternal, addMessage]);
 
   const addAgent = useCallback((config: Omit<AgentConfig, 'id'>) => {
     const apiKey = localStorage.getItem(STORAGE_KEY);
@@ -129,7 +139,7 @@ export function useChat() {
     const mafiaAgents = agents.filter((a) => isMafia(a.mafiaRole));
     const don = agents.find((a) => a.mafiaRole === MafiaRole.Don);
     const donInfo = don ? `\nThe Don is [${don.name}].` : '';
-    const welcomeMessage = `Welcome to the game! You are a mafia member. Your teammates are: ${mafiaAgents.map((a) => `[${a.name}]`).join(', ')}.${donInfo}`;
+    const welcomeMessage = `Welcome to the game, Mafia teammates are: ${mafiaAgents.map((a) => `[${a.name}]`).join(', ')}.${donInfo}`;
     addMessage({
       sender: MessageSender.System,
       content: welcomeMessage,
@@ -184,6 +194,142 @@ export function useChat() {
     gameStatusMessage();
   }, [gameStatusMessage]);
 
+  const roundDay = useCallback(async () => {
+    const aliveAgents = agents.filter((a) => !a.isDead);
+    
+    // Shuffle alive agents randomly
+    const shuffledAgents = [...aliveAgents].sort(() => Math.random() - 0.5);
+
+    addMessage({
+      sender: MessageSender.System,
+      content: `Day round started. Agents will speak in order: ${shuffledAgents.map((a) => `[${a.name}]`).join(', ')}`,
+    });
+
+    // Call each agent sequentially
+    for (const agent of shuffledAgents) {
+      try {
+        const content = await callAgentInternal(agent);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: agent.id,
+          agentName: agent.name,
+          content,
+        });
+      } catch (error) {
+        addMessage({
+          sender: MessageSender.System,
+          content: `Error calling [${agent.name}]: ${error}`,
+        });
+      }
+    }
+
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Day round completed.',
+    });
+  }, [agents, addMessage, callAgentInternal]);
+
+  const roundNight = useCallback(async () => {
+    const aliveMafia = agents.filter((a) => !a.isDead && isMafia(a.mafiaRole));
+    const don = agents.find((a) => a.mafiaRole === MafiaRole.Don && !a.isDead);
+    const detective = agents.find((a) => a.mafiaRole === MafiaRole.Detective && !a.isDead);
+    const doctor = agents.find((a) => a.mafiaRole === MafiaRole.Doctor && !a.isDead);
+    
+    addMessage({
+      sender: MessageSender.System,
+      content: `Night round started. Mafia members will act: ${aliveMafia.map((a) => `[${a.name}]`).join(', ')}`,
+      mafia: true,
+    });
+
+    // Call each mafia agent sequentially
+    for (const agent of aliveMafia) {
+      try {
+        const content = await callAgentInternal(agent);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: agent.id,
+          agentName: agent.name,
+          content,
+          mafia: true,
+        });
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    // Give word to Don or first mafia member
+    const finalMafiaWord = don || aliveMafia[0];
+    if (finalMafiaWord) {
+      addMessage({
+        sender: MessageSender.System,
+        content: `[${finalMafiaWord.name}] has the final word.`,
+        mafia: true,
+      });
+      try {
+        const content = await callAgentInternal(finalMafiaWord);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: finalMafiaWord.id,
+          agentName: finalMafiaWord.name,
+          content,
+          mafia: true,
+        });
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    // Detective's turn
+    if (detective) {
+      addMessage({
+        sender: MessageSender.System,
+        content: `[${detective.name}] (Detective) is investigating.`,
+        agentId: detective.id,
+        pm: true,
+      });
+      try {
+        const content = await callAgentInternal(detective);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: detective.id,
+          agentName: detective.name,
+          content,
+          pm: true,
+        });
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    // Doctor's turn
+    if (doctor) {
+      addMessage({
+        sender: MessageSender.System,
+        content: `[${doctor.name}] (Doctor) is choosing who to save.`,
+        agentId: doctor.id,
+        pm: true,
+      });
+      try {
+        const content = await callAgentInternal(doctor);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: doctor.id,
+          agentName: doctor.name,
+          content,
+          pm: true,
+        });
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Night round completed.',
+      mafia: true,
+    });
+  }, [agents, addMessage, callAgentInternal]);
+
   const round = useCallback(async () => {
     if (gameState !== GameState.Started) {
       alert('Game has not started yet');
@@ -202,30 +348,12 @@ export function useChat() {
       return;
     }
 
-    // Shuffle alive agents randomly
-    const shuffledAgents = [...aliveAgents].sort(() => Math.random() - 0.5);
-
-    addMessage({
-      sender: MessageSender.System,
-      content: `Round started. Agents will speak in order: ${shuffledAgents.map((a) => `[${a.name}]`).join(', ')}`,
-    });
-
-    // Call each agent sequentially
-    for (const agent of shuffledAgents) {
-      try {
-        await callAgentInternal(agent);
-      } catch (error) {
-        // Error already logged in callAgentInternal
-      }
+    if (isDay) {
+      await roundDay();
+    } else {
+      await roundNight();
     }
-
-    addMessage({
-      sender: MessageSender.System,
-      content: 'Round completed.',
-    });
-  }, [agents, gameState, addMessage, callAgentInternal]);
-
-  const [isDay, setIsDay] = useState(true);
+  }, [agents, gameState, isDay, roundDay, roundNight]);
 
   const toggleDayNight = useCallback(() => {
     if (gameState !== GameState.Started) {
@@ -241,17 +369,6 @@ export function useChat() {
       content: `Time changed to ${newIsDay ? 'DAY' : 'NIGHT'}`,
     });
 
-    if (!newIsDay) {
-      // Message for mafia
-      const aliveMafia = agents.filter((a) => !a.isDead && isMafia(a.mafiaRole));
-      if (aliveMafia.length > 0) {
-        addMessage({
-          sender: MessageSender.System,
-          content: `Mafia is active! Alive mafia members: ${aliveMafia.map((a) => `[${a.name}]`).join(', ')}. You can act now.`,
-          mafia: true,
-        });
-      }
-    }
   }, [gameState, isDay, addMessage]);
 
 

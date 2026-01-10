@@ -14,7 +14,7 @@ export function MessageBubble({ message, agentColor }: MessageBubbleProps) {
 
   return (
     <div
-      className={`message ${isSystem ? 'message-system' : isModerator ? 'message-user' : 'message-agent'} ${isPrivate ? 'message-private' : ''}`}
+      className={`message ${isSystem ? 'message-system' : isModerator ? 'message-user' : 'message-agent'} ${isPrivate ? (isSystem ? 'message-private-system' : 'message-private') : ''}`}
       style={isAgent ? { borderLeftColor: agentColor } : undefined}
     >
       {!isSystem && (
