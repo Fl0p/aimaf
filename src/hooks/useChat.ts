@@ -662,7 +662,19 @@ export function useChat() {
     }
   }, [gameState, gamePhase, agents, addMessage, startGame, runNight, runActions, runDay, runVoting]);
 
-
+  const restartGame = useCallback(() => {
+    clearMessages();
+    setGameState(GameState.Initial);
+    setGamePhase(GamePhase.Welcome);
+    nightActionsRef.current.clear();
+    dayActionsRef.current.clear();
+    
+    // Reset all agents to alive state
+    agents.forEach(agent => {
+      agent.isDead = false;
+    });
+    setAgents([...agents]);
+  }, [clearMessages, agents]);
 
   return {
     messages,
@@ -678,5 +690,6 @@ export function useChat() {
     killAgent,
     clearMessages,
     nextPhase,
+    restartGame,
   };
 }

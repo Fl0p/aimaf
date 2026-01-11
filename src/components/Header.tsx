@@ -1,31 +1,46 @@
 import { Link } from 'react-router-dom';
-import { GamePhase } from '../types';
+import { GamePhase, GameState } from '../types';
 import './Header.css';
 
 interface HeaderProps {
   onNext?: () => void;
+  onRestart?: () => void;
   gamePhase?: GamePhase;
+  gameState?: GameState;
   showBack?: boolean;
   disableSettings?: boolean;
   disableNext?: boolean;
 }
 
-export function Header({ onNext, gamePhase, showBack, disableSettings, disableNext }: HeaderProps) {
+export function Header({ onNext, onRestart, gamePhase, gameState, showBack, disableSettings, disableNext }: HeaderProps) {
+  const isGameEnded = gameState === GameState.Ended;
+  
   return (
     <header className="header">
       <Link to="/" className="header-logo">AIMAF</Link>
       {!showBack && (
         <div className="header-center">
-          {gamePhase && (
-            <span className="header-phase">Current Phase: {gamePhase.toUpperCase()}</span>
+          {isGameEnded ? (
+            <button 
+              className="header-btn header-restart-btn" 
+              onClick={onRestart}
+            >
+              Restart Game
+            </button>
+          ) : (
+            <>
+              {gamePhase && (
+                <span className="header-phase">Current Phase: {gamePhase.toUpperCase()}</span>
+              )}
+              <button 
+                className="header-btn header-next-btn" 
+                onClick={onNext}
+                disabled={disableNext}
+              >
+                Next Phase
+              </button>
+            </>
           )}
-          <button 
-            className="header-btn header-next-btn" 
-            onClick={onNext}
-            disabled={disableNext}
-          >
-            Next Phase
-          </button>
         </div>
       )}
       <div className="header-actions">

@@ -22,6 +22,7 @@ export function Home() {
     removeAgent,
     killAgent,
     nextPhase,
+    restartGame,
   } = useChat();
 
   const [selectedAgent, setSelectedAgent] = useState<ChatAgent | null>(null);
@@ -35,7 +36,9 @@ export function Home() {
     <>
       <Header 
         onNext={nextPhase}
+        onRestart={restartGame}
         gamePhase={gamePhase}
+        gameState={gameState}
         disableSettings={!isInitial}
         disableNext={isLoading || agents.length < 5 || isEnded}
       />
