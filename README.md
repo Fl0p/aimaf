@@ -2,6 +2,8 @@
 
 Client-only React SPA that runs a small Mafia-style social deduction game between multiple LLM "players" via OpenRouter.
 
+![Screenshot](1.png)
+
 **Live Demo:** https://fl0p.github.io/aimaf/
 
 ## How to play
