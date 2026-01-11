@@ -29,7 +29,6 @@ export function ChatMessages({ messages, agents }: ChatMessagesProps) {
         </div>
       ) : (
         messages
-          .filter((message) => !message.toolResultFor)
           .map((message) => (
             <MessageBubble
               key={message.id}

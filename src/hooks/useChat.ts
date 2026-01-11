@@ -46,8 +46,12 @@ export function useChat() {
   const handleToolCall = useCallback((agent: ChatAgent, toolCall: ToolCallData): string => {
     const { id: callId, tool: toolName, args } = toolCall;
     const playerName = args.playerName as string;
-    let resultContent = '';
-    let systemMessage: Message | null = null;
+    const message: Message = {
+      sender: MessageSender.System,
+      content: '',
+      tool: toolName,
+      toolResultFor: { callId, toolName },
+    };
     
     switch (toolName) {
       case 'kill': {
@@ -57,14 +61,8 @@ export function useChat() {
           actionType: 'kill',
           targetName: playerName,
         });
-        
-        resultContent = `Your request to kill @${playerName} has been accepted. The result will be known when the day comes.`;
-        systemMessage = {
-          sender: MessageSender.System,
-          content: `@${agent.name} wants to kill @${playerName}.`,
-          mafia: true,
-          tool: toolName,
-        };
+        message.content = `@${agent.name} wants to kill @${playerName}. The result will be known when the day comes.`;
+        message.mafia = true;
         break;
       }
       
@@ -75,15 +73,9 @@ export function useChat() {
           actionType: 'check',
           targetName: playerName,
         });
-        
-        resultContent = `Your request to check @${playerName} has been accepted. The result will be known when the day comes.`;
-        systemMessage = {
-          sender: MessageSender.System,
-          content: `@${agent.name} wants to check @${playerName}.`,
-          agentId: agent.id,
-          pm: true,
-          tool: toolName,
-        };
+        message.content = `@${agent.name}, you decided to check @${playerName}. The result will be known when the day comes.`;
+        message.agentId = agent.id;
+        message.pm = true;
         break;
       }
       
@@ -94,15 +86,9 @@ export function useChat() {
           actionType: 'save',
           targetName: playerName,
         });
-        
-        resultContent = `Your request to save @${playerName} has been accepted. The result will be known when the day comes.`;
-        systemMessage = {
-          sender: MessageSender.System,
-          content: `@${agent.name} wants to save @${playerName}.`,
-          agentId: agent.id,
-          pm: true,
-          tool: toolName,
-        };
+        message.content = `@${agent.name}, you decided to save @${playerName}. The result will be known when the day comes.`;
+        message.agentId = agent.id;
+        message.pm = true;
         break;
       }
       
@@ -112,32 +98,13 @@ export function useChat() {
           voterName: agent.name,
           targetName: playerName,
         });
-        
-        resultContent = `Your vote to eliminate @${playerName} has been recorded.`;
-        systemMessage = {
-          sender: MessageSender.System,
-          content: `@${agent.name} votes to eliminate @${playerName}.`,
-          tool: toolName,
-        };
+        message.content = `@${agent.name} votes to eliminate @${playerName}.`;
         break;
       }
     }
     
-    // Add tool result message FIRST (must follow assistant's tool-call)
-    addMessage({
-      sender: MessageSender.System,
-      agentId: agent.id,
-      content: resultContent,
-      pm: true,
-      toolResultFor: { callId, toolName },
-    });
-    
-    // Add system message for other players AFTER tool result
-    if (systemMessage) {
-      addMessage(systemMessage);
-    }
-
-    return resultContent;
+    addMessage(message);
+    return message.content;
   }, [addMessage]);
 
   const callAgentInternal = useCallback(async (agent: ChatAgent, phaseOverride?: GamePhase): Promise<AgentGenerateResult> => {
@@ -197,11 +164,7 @@ export function useChat() {
         }
       }
     } catch (error) {
-      addMessage({
-        sender: MessageSender.System,
-        content: `Error calling @${agent.name}: ${error}`,
-      });
-      alert('Error calling API. Check console for details.');
+      console.error('Error calling API:', error);
     }
   }, [gameState, callAgentInternal, addMessage, handleToolCall]);
 
