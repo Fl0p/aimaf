@@ -48,6 +48,8 @@ export function useChat() {
     const playerName = args.playerName as string;
     const message: Message = {
       sender: MessageSender.System,
+      agentId: agent.id,
+      agentName: agent.name,
       content: '',
       tool: toolName,
       toolResultFor: { callId, toolName },
@@ -74,7 +76,6 @@ export function useChat() {
           targetName: playerName,
         });
         message.content = `@${agent.name}, you decided to check @${playerName}. The result will be known when the day comes.`;
-        message.agentId = agent.id;
         message.pm = true;
         break;
       }
@@ -87,7 +88,6 @@ export function useChat() {
           targetName: playerName,
         });
         message.content = `@${agent.name}, you decided to save @${playerName}. The result will be known when the day comes.`;
-        message.agentId = agent.id;
         message.pm = true;
         break;
       }

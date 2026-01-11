@@ -177,12 +177,8 @@ export class ChatAgent {
         continue;
       }
 
-      // Skip empty messages (but allow tool result messages above)
-      if (m.content.trim() === '') {
-        continue;
-      }
-
       // Handle own messages with tool calls - use structured format
+      // (check this BEFORE skipping empty messages, since tool calls may have empty content)
       if (isOwnMessage && m.toolCalls && m.toolCalls.length > 0) {
         const contentParts: Array<{ type: 'text'; text: string } | { type: 'tool-call'; toolCallId: string; toolName: string; input: unknown }> = [];
         
@@ -203,6 +199,11 @@ export class ChatAgent {
           role: 'assistant',
           content: contentParts,
         });
+        continue;
+      }
+
+      // Skip empty messages (but tool calls and tool results are handled above)
+      if (m.content.trim() === '') {
         continue;
       }
 
