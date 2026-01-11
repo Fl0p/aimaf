@@ -313,6 +313,10 @@ export function useChat() {
           pm: true,
         });
       }
+      addMessage({
+        sender: MessageSender.System,
+        content: `@${results.saved.name} was injured by mafia tonight, but was saved by doctor.`,
+      });
     }
 
     // Kill the target if not saved
@@ -596,7 +600,7 @@ export function useChat() {
 
     addMessage({
       sender: MessageSender.System,
-      content: `Voting started. Players will vote in order: ${shuffledAgents.map((a) => `@${a.name}`).join(', ')}. Use the [vote] tool.`,
+      content: `Voting started. Players will vote in order: ${shuffledAgents.map((a) => `@${a.name}`).join(', ')}. Use the [vote] tool if you want to vote for a player to eliminate.`,
     });
 
     for (const agent of shuffledAgents) {
