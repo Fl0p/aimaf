@@ -65,6 +65,8 @@ export class NightActions {
     // If killed agent is saved, cancel the kill
     if (killedAgent && savedAgent && killedAgent.id === savedAgent.id) {
       killedAgent = null;
+    } else if (savedAgent) {
+      savedAgent = null;
     }
 
     // Process checks
@@ -76,7 +78,7 @@ export class NightActions {
           return {
             detective,
             target,
-            isMafia: target.mafiaRole === 'mafia' || target.mafiaRole === 'don',
+            isMafia: target.mafiaRole === 'mafia', // don't check for don's role
           };
         }
         return null;

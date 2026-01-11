@@ -269,6 +269,12 @@ export function useChat() {
       content: `Game has started! ${formatPlayersList(agents)}`,
     });
 
+    const result = formatGameStatus(agents);
+    addMessage({
+      sender: MessageSender.System,
+      content: result.message,
+    });
+
     welcomeMafiaMessage();
     welcomeDetectiveMessage();
     welcomeDoctorMessage();

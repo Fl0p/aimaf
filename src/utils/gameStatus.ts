@@ -1,5 +1,6 @@
 import { ChatAgent } from '../agents/ChatAgent';
 import { MafiaRole } from '../types';
+import { isMafia } from './helpers';
 
 export interface GameStatus {
   total: number;
@@ -131,11 +132,11 @@ export function formatGameStatus(agents: ChatAgent[]): GameStatusResult {
 
   // Check for victory
   if (status.mafiaWin) {
-    const mafiaAgents = agents.filter(agent => !agent.isDead && (agent.mafiaRole === MafiaRole.Mafia || agent.mafiaRole === MafiaRole.Don));
+    const mafiaAgents = agents.filter(agent => isMafia(agent.mafiaRole));
     const mafiaNames = mafiaAgents.map(agent => `@${agent.name}`).join(', ');
     lines.push(`!!! MAFIA WINS !!! Winners: ${mafiaNames}`);
   } else if (status.civiliansWin) {
-    const civilianAgents = agents.filter(agent => !agent.isDead && agent.mafiaRole !== MafiaRole.Mafia && agent.mafiaRole !== MafiaRole.Don);
+    const civilianAgents = agents.filter(agent => !isMafia(agent.mafiaRole));
     const civilianNames = civilianAgents.map(agent => `@${agent.name}`).join(', ');
     lines.push(`!!! CIVILIANS WIN !!! Winners: ${civilianNames}`);
   }
