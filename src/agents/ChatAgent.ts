@@ -28,9 +28,9 @@ export class ChatAgent {
 
   private createToolResponse(action: string, playerName: string, allowedPhases: GamePhase[]): string {
     if (!allowedPhases.includes(this.currentGamePhase)) {
-      return `[TOOL:${action}] ERROR: You cannot use this action during ${this.currentGamePhase} phase. This action is only available during: ${allowedPhases.join(', ')}.`;
+      return `[TOOL:${action}] ERROR: You cannot use this action during ${this.currentGamePhase} phase. Wait for the next phase to use this action. This action is only available during: ${allowedPhases.join(', ')}.`;
     }
-    return `[TOOL:${action}] Your request to ${action} player @${playerName} has been accepted. The result will be known when the day comes.`;
+    return `[TOOL:${action}] Your request to ${action} player @${playerName} has been accepted. The result will be known on the next phase.`;
   }
 
   private createTools() {

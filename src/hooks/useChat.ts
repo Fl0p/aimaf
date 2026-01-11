@@ -130,8 +130,8 @@ export function useChat() {
   }, [agents, gamePhase]);
 
   const askAgent = useCallback(async (agent: ChatAgent) => {
-    if (gameState !== GameState.Started) {
-      alert('Game has not started yet');
+    if (gameState === GameState.Initial) {
+      alert('Game is not started yet');
       return;
     }
 
@@ -196,7 +196,7 @@ export function useChat() {
       
       addMessage({
         sender: MessageSender.System,
-        content: `@${agent.name} (${agent.mafiaRole}) has been killed by @Moderator!`,
+        content: `@${agent.name} (${agent.mafiaRole}) has been killed and removed from the game by [@MODERATOR]!`,
       });
       const result = formatGameStatus(agents);
       addMessage({
