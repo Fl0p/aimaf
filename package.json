@@ -2,7 +2,7 @@
   "name": "aimaf",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://github.com/Fl0p/aimaf",
+  "homepage": "https://fl0p.github.io/aimaf",
   "dependencies": {
     "@openrouter/ai-sdk-provider": "^1.5.4",
     "@testing-library/dom": "^10.4.0",

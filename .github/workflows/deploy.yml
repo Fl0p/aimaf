@@ -40,6 +40,7 @@ jobs:
         run: yarn build
         env:
           DISABLE_ESLINT_PLUGIN: true
+          PUBLIC_URL: /aimaf
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
