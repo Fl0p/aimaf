@@ -234,7 +234,7 @@ export function Settings() {
             className="settings-textarea"
             value={prompts.root}
             onChange={(e) => updatePrompt('root', e.target.value)}
-            rows={4}
+            rows={5}
           />
         </div>
 
@@ -244,7 +244,7 @@ export function Settings() {
             className="settings-textarea"
             value={prompts.generalRules}
             onChange={(e) => updatePrompt('generalRules', e.target.value)}
-            rows={4}
+            rows={5}
           />
         </div>
 
@@ -254,7 +254,7 @@ export function Settings() {
             className="settings-textarea"
             value={prompts[MafiaRole.Civilian]}
             onChange={(e) => updatePrompt(MafiaRole.Civilian, e.target.value)}
-            rows={4}
+            rows={5}
           />
         </div>
 
@@ -264,7 +264,7 @@ export function Settings() {
             className="settings-textarea"
             value={prompts[MafiaRole.Mafia]}
             onChange={(e) => updatePrompt(MafiaRole.Mafia, e.target.value)}
-            rows={4}
+            rows={5}
           />
         </div>
 

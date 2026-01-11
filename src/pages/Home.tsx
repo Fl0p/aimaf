@@ -27,6 +27,7 @@ export function Home() {
   const [selectedAgent, setSelectedAgent] = useState<ChatAgent | null>(null);
 
   const isInitial = gameState === GameState.Initial;
+  const isEnded = gameState === GameState.Ended;
 
   const visibleMessages = selectedAgent ? selectedAgent.getVisibleMessages(messages) : [];
 
@@ -36,7 +37,7 @@ export function Home() {
         onNext={nextPhase}
         gamePhase={gamePhase}
         disableSettings={!isInitial}
-        disableNext={isLoading || agents.length < 5}
+        disableNext={isLoading || agents.length < 5 || isEnded}
       />
       <div className="home">
         <AgentPanel
