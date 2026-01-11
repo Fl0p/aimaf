@@ -12,8 +12,8 @@ const ROLE_COLORS: Record<MafiaRole, string> = {
 
 const ROLE_EMOJI: Record<MafiaRole, string> = {
   [MafiaRole.Civilian]: '👤',
-  [MafiaRole.Mafia]: '🔫',
-  [MafiaRole.Doctor]: '💉',
+  [MafiaRole.Mafia]: '🕶️',
+  [MafiaRole.Doctor]: '❤️‍🩹',
   [MafiaRole.Detective]: '🔍',
   [MafiaRole.Don]: '🎩',
 };
@@ -28,8 +28,8 @@ interface AgentCardProps {
 }
 
 export function AgentCard({ agent, isActive, disabled, onClick, onX, onI }: AgentCardProps) {
-  const backgroundColor = ROLE_COLORS[agent.mafiaRole] || '#fff';
-  const statusColor = agent.isDead ? '⚫' : (isActive ? '🟢' : '⚪');
+  const backgroundColor = '#fff';
+  const statusColor = agent.isDead ? '⚫' : (isActive ? '🔵' : '🟢');
 
   return (
     <div
