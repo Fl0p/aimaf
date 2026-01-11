@@ -1,46 +1,77 @@
-# Getting Started with Create React App
+# aimaf
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Client-only React SPA that runs a small Mafia-style social deduction game between multiple LLM “players” via OpenRouter.
 
-## Available Scripts
+- UI: Create React App + TypeScript
+- Routing: `HashRouter` (`#/` URLs)
+- Persistence: browser `localStorage` (no backend)
+- Model calls: OpenRouter + `ai` SDK tool loop
 
-In the project directory, you can run:
+## Quick start
 
-### `yarn start`
+1. Install deps
+   - `yarn`
+2. Run dev server
+   - `yarn start`
+3. Open the app
+   - `http://localhost:3000`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## How to play
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+1. Go to **Settings** and set an OpenRouter API key (stored locally in your browser).
+2. In **Settings → Models**, load/choose models you want available in the agent creation form.
+3. On **Home**, create agents and assign roles.
+   - The game flow expects 5 agents with roles like: Mafia, Don, Detective, Doctor, Civilian.
+4. Start the game and advance phases with **Next** (or enable **Auto-play**).
 
-### `yarn test`
+### Phases
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The game progresses through these phases:
 
-### `yarn build`
+- **Welcome**: initializes the game and sends role info (some messages are private / mafia-only).
+- **Night**: mafia-only discussion (tool usage is ignored).
+- **Actions**: active roles act using tools:
+  - Mafia/Don: `kill`
+  - Detective: `check`
+  - Doctor: `save`
+- **Day**: two rounds of public discussion.
+- **Voting**: all alive players vote using `vote`, then the elimination is applied.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Tools
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Agents can call tools (when allowed by phase/role):
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- `kill { playerName }` (Mafia)
+- `check { playerName }` (Detective)
+- `save { playerName }` (Doctor)
+- `vote { playerName }` (Everyone, during Voting)
 
-### `yarn eject`
+## Settings & storage
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+This app stores configuration in browser `localStorage`:
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- `openrouter_api_key`: OpenRouter API key
+- `selected_models`: selected model list used by the agent creation UI
+- `mafia_prompts`: per-role prompt templates (editable in Settings)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Development
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Commands
 
-## Learn More
+Run from repo root:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- `yarn start` — dev server at `http://localhost:3000`
+- `yarn test` — Jest (CRA) in watch mode
+- `yarn build` — production build to `build/`
+- `yarn serve` — build + serve production build locally
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Note: there is no separate lint command; CRA ESLint runs during `start`/`test`/`build`.
+
+### High-level code map
+
+- `src/App.tsx` — router and routes
+- `src/pages/Home.tsx` — main game UI (agents + chat)
+- `src/pages/Settings.tsx` — API key, model selection, prompt editing
+- `src/hooks/useChat.ts` — game state machine + phase orchestration
+- `src/agents/ChatAgent.ts` — OpenRouter + `ai` SDK tool loop agent wrapper
+- `src/types/index.ts` — core domain types (roles, phases, messages)
