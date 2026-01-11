@@ -29,6 +29,7 @@ export function Home() {
   } = useChat();
 
   const [selectedAgent, setSelectedAgent] = useState<ChatAgent | null>(null);
+  const [isAgentPanelOpen, setIsAgentPanelOpen] = useState(false);
 
   const isInitial = gameState === GameState.Initial;
   const isEnded = gameState === GameState.Ended;
@@ -48,6 +49,9 @@ export function Home() {
         onAutoPlayChange={setAutoPlay}
       />
       <div className="home">
+        {isAgentPanelOpen && (
+          <div className="agent-panel-overlay" onClick={() => setIsAgentPanelOpen(false)} />
+        )}
         <AgentPanel
           agents={agents}
           isLoading={isLoading}
@@ -58,8 +62,17 @@ export function Home() {
           onKillAgent={killAgent}
           gameState={gameState}
           onShowAgentInfo={setSelectedAgent}
+          isOpen={isAgentPanelOpen}
+          onClose={() => setIsAgentPanelOpen(false)}
         />
         <div className="chat-area">
+          <button 
+            className="agent-panel-toggle"
+            onClick={() => setIsAgentPanelOpen(!isAgentPanelOpen)}
+            aria-label="Toggle agents panel"
+          >
+            {isAgentPanelOpen ? '✕' : '☰'} Agents
+          </button>
           <ChatMessages messages={messages} agents={agents} />
           <ChatInput onSend={sendMessage} disabled={isLoading} />
         </div>

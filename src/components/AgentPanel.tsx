@@ -39,6 +39,8 @@ interface AgentPanelProps {
   onKillAgent: (agentId: string) => void;
   gameState: GameState;
   onShowAgentInfo: (agent: ChatAgent) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export function AgentPanel({
@@ -51,6 +53,8 @@ export function AgentPanel({
   onKillAgent,
   gameState,
   onShowAgentInfo,
+  isOpen,
+  onClose,
 }: AgentPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
@@ -124,8 +128,15 @@ export function AgentPanel({
   const sortedAgents = [...agents].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="agent-panel">
-      <div className="agent-panel-header">Agents</div>
+    <div className={`agent-panel ${isOpen ? 'agent-panel-open' : ''}`}>
+      <div className="agent-panel-header">
+        <span>Agents</span>
+        {onClose && (
+          <button className="agent-panel-close" onClick={onClose} aria-label="Close panel">
+            ✕
+          </button>
+        )}
+      </div>
       <div className="agent-list">
         {sortedAgents.map((agent) => (
           <AgentCard
