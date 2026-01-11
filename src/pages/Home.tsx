@@ -15,37 +15,28 @@ export function Home() {
     isLoading,
     activeAgentId,
     gameState,
-    isDay,
+    gamePhase,
     sendMessage,
     askAgent,
     addAgent,
     removeAgent,
     killAgent,
-    startGame,
-    status,
-    round,
-    toggleDayNight,
+    nextPhase,
   } = useChat();
 
   const [selectedAgent, setSelectedAgent] = useState<ChatAgent | null>(null);
 
   const isInitial = gameState === GameState.Initial;
-  const isStarted = gameState === GameState.Started;
-  const canStart = isInitial && agents.length >= 2;
 
   const visibleMessages = selectedAgent ? selectedAgent.getVisibleMessages(messages) : [];
 
   return (
     <>
       <Header 
-        onStart={startGame}
-        onStatus={status}
-        onRound={round}
-        onToggleDayNight={toggleDayNight}
-        isDay={isDay}
-        disableStart={!canStart}
+        onNext={nextPhase}
+        gamePhase={gamePhase}
         disableSettings={!isInitial}
-        disableDayNight={!isStarted}
+        disableNext={isLoading}
       />
       <div className="home">
         <AgentPanel

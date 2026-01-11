@@ -1,43 +1,30 @@
 import { Link } from 'react-router-dom';
+import { GamePhase } from '../types';
 import './Header.css';
 
 interface HeaderProps {
-  onStart?: () => void;
-  onStatus?: () => void;
-  onRound?: () => void;
-  onToggleDayNight?: () => void;
-  isDay?: boolean;
+  onNext?: () => void;
+  gamePhase?: GamePhase;
   showBack?: boolean;
   disableSettings?: boolean;
-  disableStart?: boolean;
-  disableDayNight?: boolean;
+  disableNext?: boolean;
 }
 
-export function Header({ onStart, onStatus, onRound, onToggleDayNight, isDay, showBack, disableSettings, disableStart, disableDayNight }: HeaderProps) {
+export function Header({ onNext, gamePhase, showBack, disableSettings, disableNext }: HeaderProps) {
   return (
     <header className="header">
       <Link to="/" className="header-logo">AIMAF</Link>
       {!showBack && (
         <div className="header-center">
+          {gamePhase && (
+            <span className="header-phase">{gamePhase.toUpperCase()}</span>
+          )}
           <button 
             className="header-btn" 
-            onClick={onStart} 
-            disabled={disableStart}
+            onClick={onNext}
+            disabled={disableNext}
           >
-            Start
-          </button>
-          <button 
-            className="header-btn header-btn-debug" 
-            onClick={onToggleDayNight}
-            disabled={disableDayNight}
-          >
-            {isDay ? 'Night' : 'Day'}
-          </button>
-          <button className="header-btn header-btn-debug" onClick={onRound}>
-            Round
-          </button>
-          <button className="header-btn header-btn-debug" onClick={onStatus}>
-            Status
+            Next Phase
           </button>
         </div>
       )}

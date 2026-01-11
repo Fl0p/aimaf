@@ -18,6 +18,14 @@ export enum GameState {
   Ended = 'ended',
 }
 
+export enum GamePhase {
+  Welcome = 'welcome',
+  Night = 'night',     // mafia discussion
+  Actions = 'actions', // active players actions + news
+  Day = 'day',         // two rounds of discussion
+  Voting = 'voting',   // all players vote + results
+}
+
 export interface Message {
   sender: MessageSender;
   agentId?: string;

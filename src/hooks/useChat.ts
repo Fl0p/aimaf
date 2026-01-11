@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Message, ChatMessage, AgentConfig, MessageSender, GameState, MafiaRole, AgentGenerateResult } from '../types';
+import { Message, ChatMessage, AgentConfig, MessageSender, GameState, GamePhase, MafiaRole, AgentGenerateResult } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 import { formatGameStatus, formatPlayersList } from '../utils/gameStatus';
 import { generateId, isMafia } from '../utils/helpers';
@@ -15,7 +15,7 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<GameState>(GameState.Initial);
-  const [isDay, setIsDay] = useState(true);
+  const [gamePhase, setGamePhase] = useState<GamePhase>(GamePhase.Welcome);
   const nightActionsRef = useRef(new NightActions());
   const dayActionsRef = useRef(new DayActions());
 
@@ -270,245 +270,11 @@ export function useChat() {
       content: `Game has started! ${formatPlayersList(agents)}`,
     });
 
-    gameStatusMessage();
-
     welcomeMafiaMessage();
-
     welcomeDetectiveMessage();
     welcomeDoctorMessage();
 
-  }, [addMessage, agents, gameStatusMessage, welcomeMafiaMessage, welcomeDetectiveMessage, welcomeDoctorMessage]);
-
-  const status = useCallback(() => {
-    gameStatusMessage();
-  }, [gameStatusMessage]);
-
-  const roundDay = useCallback(async () => {
-    const aliveAgents = agents.filter((a) => !a.isDead);
-    
-    // First discussion cycle
-    // Shuffle alive agents randomly
-    const shuffledAgents = [...aliveAgents].sort(() => Math.random() - 0.5);
-
-    addMessage({
-      sender: MessageSender.System,
-      content: `Day round started. First of two discussions. Agents will speak in order: ${shuffledAgents.map((a) => `@${a.name}`).join(', ')}`,
-    });
-
-    // Call each agent sequentially
-    for (const agent of shuffledAgents) {
-      try {
-        const result = await callAgentInternal(agent);
-        addMessage({
-          sender: MessageSender.Agent,
-          agentId: agent.id,
-          agentName: agent.name,
-          content: result.text,
-          executionTime: result.executionTime,
-        });
-
-        // Handle tool calls
-        if (result.toolCalls) {
-          for (const toolCall of result.toolCalls) {
-            handleToolCall(agent, toolCall.tool, toolCall.args);
-          }
-        }
-      } catch (error) {
-        console.error('Error calling API:', error);
-      }
-    }
-
-    // Second discussion cycle
-    // Re-shuffle alive agents randomly
-    const aliveAgentsSecond = agents.filter((a) => !a.isDead);
-    const shuffledAgentsSecond = [...aliveAgentsSecond].sort(() => Math.random() - 0.5);
-
-    addMessage({
-      sender: MessageSender.System,
-      content: `Second discussion. Agents will speak in order: ${shuffledAgentsSecond.map((a) => `@${a.name}`).join(', ')}`,
-    });
-
-    // Call each agent sequentially again
-    for (const agent of shuffledAgentsSecond) {
-      try {
-        const result = await callAgentInternal(agent);
-        addMessage({
-          sender: MessageSender.Agent,
-          agentId: agent.id,
-          agentName: agent.name,
-          content: result.text,
-          executionTime: result.executionTime,
-        });
-
-        // Handle tool calls
-        if (result.toolCalls) {
-          for (const toolCall of result.toolCalls) {
-            handleToolCall(agent, toolCall.tool, toolCall.args);
-          }
-        }
-      } catch (error) {
-        console.error('Error calling API:', error);
-      }
-    }
-
-    addMessage({
-      sender: MessageSender.System,
-      content: 'Day rounds completed. Let\'s vote to eliminate suspects. Use the [vote] tool to vote for a suspect.',
-    });
-  }, [agents, addMessage, callAgentInternal, handleToolCall]);
-
-  const roundNight = useCallback(async () => {
-    const aliveMafia = agents.filter((a) => !a.isDead && isMafia(a.mafiaRole));
-    const don = agents.find((a) => a.mafiaRole === MafiaRole.Don && !a.isDead);
-    const detective = agents.find((a) => a.mafiaRole === MafiaRole.Detective && !a.isDead);
-    const doctor = agents.find((a) => a.mafiaRole === MafiaRole.Doctor && !a.isDead);
-    
-    addMessage({
-      sender: MessageSender.System,
-      content: `Night round started. Mafia members will act: ${aliveMafia.map((a) => `@${a.name}`).join(', ')}. Now you can discuss who to kill tonight.`,
-      mafia: true,
-    });
-
-    // Call each mafia agent sequentially (discussion phase - no tools)
-    for (const agent of aliveMafia) {
-      try {
-        const result = await callAgentInternal(agent);
-        addMessage({
-          sender: MessageSender.Agent,
-          agentId: agent.id,
-          agentName: agent.name,
-          content: result.text,
-          mafia: true,
-          executionTime: result.executionTime,
-        });
-
-        // Ignore tool calls during discussion phase
-      } catch (error) {
-        console.error('Error calling API:', error);
-      }
-    }
-
-    // Give word to Don or first mafia member
-    const finalMafiaWord = don || aliveMafia[0];
-    if (finalMafiaWord) {
-      addMessage({
-        sender: MessageSender.System,
-        content: `@${finalMafiaWord.name}, now you can use the [kill] tool to make the final decision.`,
-        mafia: true,
-      });
-      try {
-        const result = await callAgentInternal(finalMafiaWord);
-        addMessage({
-          sender: MessageSender.Agent,
-          agentId: finalMafiaWord.id,
-          agentName: finalMafiaWord.name,
-          content: result.text,
-          mafia: true,
-          executionTime: result.executionTime,
-        });
-
-        // Handle tool calls only in decision phase
-        if (result.toolCalls) {
-          for (const toolCall of result.toolCalls) {
-            handleToolCall(finalMafiaWord, toolCall.tool, toolCall.args);
-          }
-        }
-      } catch (error) {
-        console.error('Error calling API:', error);
-      }
-    }
-
-    // Detective's turn
-    if (detective) {
-      addMessage({
-        sender: MessageSender.System,
-        content: `@${detective.name} Detective is investigating. use the [check] tool to check if a player is a mafia member.`,
-        agentId: detective.id,
-        pm: true,
-      });
-      try {
-        const result = await callAgentInternal(detective);
-        addMessage({
-          sender: MessageSender.Agent,
-          agentId: detective.id,
-          agentName: detective.name,
-          content: result.text,
-          pm: true,
-          executionTime: result.executionTime,
-        });
-
-        // Handle tool calls
-        if (result.toolCalls) {
-          for (const toolCall of result.toolCalls) {
-            handleToolCall(detective, toolCall.tool, toolCall.args);
-          }
-        }
-      } catch (error) {
-        console.error('Error calling API:', error);
-      }
-    }
-
-    // Doctor's turn
-    if (doctor) {
-      addMessage({
-        sender: MessageSender.System,
-        content: `@${doctor.name} Doctor is choosing who to save. use the [save] tool to save a player.`,
-        agentId: doctor.id,
-        pm: true,
-      });
-      try {
-        const result = await callAgentInternal(doctor);
-        addMessage({
-          sender: MessageSender.Agent,
-          agentId: doctor.id,
-          agentName: doctor.name,
-          content: result.text,
-          pm: true,
-          executionTime: result.executionTime,
-        });
-
-        // Handle tool calls
-        if (result.toolCalls) {
-          for (const toolCall of result.toolCalls) {
-            handleToolCall(doctor, toolCall.tool, toolCall.args);
-          }
-        }
-      } catch (error) {
-        console.error('Error calling API:', error);
-      }
-    }
-
-    addMessage({
-      sender: MessageSender.System,
-      content: 'Night round completed.',
-      mafia: true,
-    });
-  }, [agents, addMessage, callAgentInternal, handleToolCall]);
-
-  const round = useCallback(async () => {
-    if (gameState !== GameState.Started) {
-      alert('Game has not started yet');
-      return;
-    }
-
-    const aliveAgents = agents.filter((a) => !a.isDead);
-    if (aliveAgents.length === 0) {
-      alert('No alive agents');
-      return;
-    }
-
-    const apiKey = localStorage.getItem(STORAGE_KEY);
-    if (!apiKey) {
-      alert('Please set OpenRouter API key in Settings');
-      return;
-    }
-
-    if (isDay) {
-      await roundDay();
-    } else {
-      await roundNight();
-    }
-  }, [agents, gameState, isDay, roundDay, roundNight]);
+  }, [addMessage, agents, welcomeMafiaMessage, welcomeDetectiveMessage, welcomeDoctorMessage]);
 
   const processNightResults = useCallback(() => {
     const results = nightActionsRef.current.processActions(agents);
@@ -558,26 +324,318 @@ export function useChat() {
     gameStatusMessage();
   }, [agents, addMessage, gameStatusMessage]);
 
-  const toggleDayNight = useCallback(() => {
-    if (gameState !== GameState.Started) {
-      alert('Game has not started yet');
-      return;
+  const processVotingResults = useCallback(() => {
+    const results = dayActionsRef.current.processVotes(agents);
+    
+    if (results.eliminated) {
+      results.eliminated.isDead = true;
+      setAgents([...agents]);
+      
+      addMessage({
+        sender: MessageSender.System,
+        content: `@${results.eliminated.name} (${results.eliminated.mafiaRole}) was eliminated by vote! Votes: ${results.voteCount}`,
+      });
+    } else if (results.tie) {
+      addMessage({
+        sender: MessageSender.System,
+        content: `Vote ended in a tie. Nobody was eliminated.`,
+      });
+    } else {
+      addMessage({
+        sender: MessageSender.System,
+        content: 'No votes were cast. Nobody was eliminated.',
+      });
     }
 
-    const newIsDay = !isDay;
-    setIsDay(newIsDay);
+    dayActionsRef.current.clear();
+    gameStatusMessage();
+  }, [agents, addMessage, gameStatusMessage]);
+
+  const runDay = useCallback(async () => {
+    const aliveAgents = agents.filter((a) => !a.isDead);
+    
+    // First discussion cycle
+    const shuffledAgents = [...aliveAgents].sort(() => Math.random() - 0.5);
+
+    addMessage({
+      sender: MessageSender.System,
+      content: `Day started. First discussion. Agents will speak in order: ${shuffledAgents.map((a) => `@${a.name}`).join(', ')}`,
+    });
+
+    // Call each agent sequentially
+    for (const agent of shuffledAgents) {
+      try {
+        const result = await callAgentInternal(agent);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: agent.id,
+          agentName: agent.name,
+          content: result.text,
+          executionTime: result.executionTime,
+        });
+
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(agent, toolCall.tool, toolCall.args);
+          }
+        }
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    // Second discussion cycle
+    const aliveAgentsSecond = agents.filter((a) => !a.isDead);
+    const shuffledAgentsSecond = [...aliveAgentsSecond].sort(() => Math.random() - 0.5);
+
+    addMessage({
+      sender: MessageSender.System,
+      content: `Second discussion. Agents will speak in order: ${shuffledAgentsSecond.map((a) => `@${a.name}`).join(', ')}`,
+    });
+
+    for (const agent of shuffledAgentsSecond) {
+      try {
+        const result = await callAgentInternal(agent);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: agent.id,
+          agentName: agent.name,
+          content: result.text,
+          executionTime: result.executionTime,
+        });
+
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(agent, toolCall.tool, toolCall.args);
+          }
+        }
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Day discussions completed.',
+    });
+  }, [agents, addMessage, callAgentInternal, handleToolCall]);
+
+  // Night phase: mafia discussion only (no tools)
+  const runNight = useCallback(async () => {
+    const aliveMafia = agents.filter((a) => !a.isDead && isMafia(a.mafiaRole));
     
     addMessage({
       sender: MessageSender.System,
-      content: `Time changed to ${newIsDay ? 'DAY' : 'NIGHT'}`,
+      content: `Night started. Mafia members: ${aliveMafia.map((a) => `@${a.name}`).join(', ')}. Discuss who to kill tonight.`,
+      mafia: true,
     });
 
-    // If switching to day, process night results
-    if (newIsDay) {
-      processNightResults();
+    // Call each mafia agent sequentially (discussion phase - no tools)
+    for (const agent of aliveMafia) {
+      try {
+        const result = await callAgentInternal(agent);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: agent.id,
+          agentName: agent.name,
+          content: result.text,
+          mafia: true,
+          executionTime: result.executionTime,
+        });
+        // Ignore tool calls during discussion phase
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
     }
 
-  }, [gameState, isDay, addMessage, processNightResults]);
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Mafia discussion completed.',
+      mafia: true,
+    });
+  }, [agents, addMessage, callAgentInternal]);
+
+  // Actions phase: active players actions + news + status
+  const runActions = useCallback(async () => {
+    const aliveMafia = agents.filter((a) => !a.isDead && isMafia(a.mafiaRole));
+    const don = agents.find((a) => a.mafiaRole === MafiaRole.Don && !a.isDead);
+    const detective = agents.find((a) => a.mafiaRole === MafiaRole.Detective && !a.isDead);
+    const doctor = agents.find((a) => a.mafiaRole === MafiaRole.Doctor && !a.isDead);
+
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Actions phase started. Active players will act.',
+    });
+
+    // Give word to Don or first mafia member for kill
+    const finalMafiaWord = don || aliveMafia[0];
+    if (finalMafiaWord) {
+      addMessage({
+        sender: MessageSender.System,
+        content: `@${finalMafiaWord.name}, use the [kill] tool to make the final decision.`,
+        mafia: true,
+      });
+      try {
+        const result = await callAgentInternal(finalMafiaWord);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: finalMafiaWord.id,
+          agentName: finalMafiaWord.name,
+          content: result.text,
+          mafia: true,
+          executionTime: result.executionTime,
+        });
+
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(finalMafiaWord, toolCall.tool, toolCall.args);
+          }
+        }
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    // Detective's turn
+    if (detective) {
+      addMessage({
+        sender: MessageSender.System,
+        content: `@${detective.name}, use the [check] tool to investigate a player.`,
+        agentId: detective.id,
+        pm: true,
+      });
+      try {
+        const result = await callAgentInternal(detective);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: detective.id,
+          agentName: detective.name,
+          content: result.text,
+          pm: true,
+          executionTime: result.executionTime,
+        });
+
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(detective, toolCall.tool, toolCall.args);
+          }
+        }
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    // Doctor's turn
+    if (doctor) {
+      addMessage({
+        sender: MessageSender.System,
+        content: `@${doctor.name}, use the [save] tool to save a player.`,
+        agentId: doctor.id,
+        pm: true,
+      });
+      try {
+        const result = await callAgentInternal(doctor);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: doctor.id,
+          agentName: doctor.name,
+          content: result.text,
+          pm: true,
+          executionTime: result.executionTime,
+        });
+
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(doctor, toolCall.tool, toolCall.args);
+          }
+        }
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    // Process night results (news)
+    processNightResults();
+  }, [agents, addMessage, callAgentInternal, handleToolCall, processNightResults]);
+
+  const runVoting = useCallback(async () => {
+    const aliveAgents = agents.filter((a) => !a.isDead);
+    const shuffledAgents = [...aliveAgents].sort(() => Math.random() - 0.5);
+
+    addMessage({
+      sender: MessageSender.System,
+      content: `Voting started. Players will vote in order: ${shuffledAgents.map((a) => `@${a.name}`).join(', ')}. Use the [vote] tool.`,
+    });
+
+    for (const agent of shuffledAgents) {
+      try {
+        const result = await callAgentInternal(agent);
+        addMessage({
+          sender: MessageSender.Agent,
+          agentId: agent.id,
+          agentName: agent.name,
+          content: result.text,
+          executionTime: result.executionTime,
+        });
+
+        if (result.toolCalls) {
+          for (const toolCall of result.toolCalls) {
+            handleToolCall(agent, toolCall.tool, toolCall.args);
+          }
+        }
+      } catch (error) {
+        console.error('Error calling API:', error);
+      }
+    }
+
+    // Process voting results
+    processVotingResults();
+  }, [agents, addMessage, callAgentInternal, handleToolCall, processVotingResults]);
+
+  const nextPhase = useCallback(async () => {
+    const apiKey = localStorage.getItem(STORAGE_KEY);
+    if (!apiKey) {
+      alert('Please set OpenRouter API key in Settings');
+      return;
+    }
+
+    const aliveAgents = agents.filter((a) => !a.isDead);
+    if (gameState === GameState.Started && aliveAgents.length === 0) {
+      alert('No alive agents');
+      return;
+    }
+
+    const phaseTransitions: Record<GamePhase, GamePhase> = {
+      [GamePhase.Welcome]: GamePhase.Night,
+      [GamePhase.Night]: GamePhase.Actions,
+      [GamePhase.Actions]: GamePhase.Day,
+      [GamePhase.Day]: GamePhase.Voting,
+      [GamePhase.Voting]: GamePhase.Night,
+    };
+
+    const newPhase = phaseTransitions[gamePhase];
+    setGamePhase(newPhase);
+
+    addMessage({
+      sender: MessageSender.System,
+      content: `Phase: ${newPhase.toUpperCase()}`,
+    });
+
+    // Handle phase-specific actions
+    if (gamePhase === GamePhase.Welcome) {
+      // Start the game and run night discussion
+      startGame();
+      await runNight();
+    } else if (newPhase === GamePhase.Actions) {
+      await runActions();
+    } else if (newPhase === GamePhase.Day) {
+      await runDay();
+    } else if (newPhase === GamePhase.Voting) {
+      await runVoting();
+    } else if (newPhase === GamePhase.Night) {
+      await runNight();
+    }
+  }, [gameState, gamePhase, agents, addMessage, startGame, runNight, runActions, runDay, runVoting]);
 
 
 
@@ -587,16 +645,13 @@ export function useChat() {
     isLoading,
     activeAgentId,
     gameState,
-    isDay,
+    gamePhase,
     sendMessage,
     askAgent,
     addAgent,
     removeAgent,
     killAgent,
     clearMessages,
-    startGame,
-    status,
-    round,
-    toggleDayNight,
+    nextPhase,
   };
 }

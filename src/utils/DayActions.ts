@@ -10,6 +10,8 @@ export interface VoteResults {
   eliminated: ChatAgent | null;
   votes: Map<string, number>; // targetName -> vote count
   details: VoteAction[];
+  tie: boolean;
+  voteCount: number;
 }
 
 export class DayActions {
@@ -60,6 +62,8 @@ export class DayActions {
       eliminated,
       votes: voteCounts,
       details: [...this.votes],
+      tie: hasTie,
+      voteCount: maxVotes,
     };
   }
 
