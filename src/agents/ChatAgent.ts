@@ -1,6 +1,6 @@
 import { ToolLoopAgent, ModelMessage, ToolSet, tool } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { AgentConfig, Message, MafiaRole, MessageSender } from '../types';
+import { AgentConfig, Message, MafiaRole, MessageSender, GamePhase } from '../types';
 import { MafiaPrompts } from './MafiaPrompts';
 import { isMafia } from '../utils/helpers';
 import { z } from 'zod';
@@ -9,6 +9,7 @@ export class ChatAgent {
   private config: AgentConfig;
   private agent: ToolLoopAgent<never, ToolSet>;
   private _isDead: boolean = false;
+  private currentGamePhase: GamePhase = GamePhase.Welcome;
 
   constructor(config: AgentConfig, apiKey: string) {
     this.config = config;
@@ -23,7 +24,10 @@ export class ChatAgent {
     });
   }
 
-  private createToolResponse(action: string, playerName: string): string {
+  private createToolResponse(action: string, playerName: string, allowedPhases: GamePhase[]): string {
+    if (!allowedPhases.includes(this.currentGamePhase)) {
+      return `[TOOL:${action}] ERROR: You cannot use this action during ${this.currentGamePhase} phase. This action is only available during: ${allowedPhases.join(', ')}.`;
+    }
     return `[TOOL:${action}] Your request to ${action} player @${playerName} has been accepted. The result will be known when the day comes.`;
   }
 
@@ -38,7 +42,7 @@ export class ChatAgent {
           playerName: z.string().describe('The name of the player to kill'),
         }),
         execute: async ({ playerName }: { playerName: string }) => {
-          return this.createToolResponse('kill', playerName);
+          return this.createToolResponse('kill', playerName, [GamePhase.Actions]);
         },
       });
     }
@@ -51,7 +55,7 @@ export class ChatAgent {
           playerName: z.string().describe('The name of the player to check'),
         }),
         execute: async ({ playerName }: { playerName: string }) => {
-          return this.createToolResponse('check', playerName);
+          return this.createToolResponse('check', playerName, [GamePhase.Actions]);
         },
       });
     }
@@ -64,7 +68,7 @@ export class ChatAgent {
           playerName: z.string().describe('The name of the player to save'),
         }),
         execute: async ({ playerName }: { playerName: string }) => {
-          return this.createToolResponse('save', playerName);
+          return this.createToolResponse('save', playerName, [GamePhase.Actions]);
         },
       });
     }
@@ -76,14 +80,15 @@ export class ChatAgent {
         playerName: z.string().describe('The name of the player to vote for elimination'),
       }),
       execute: async ({ playerName }: { playerName: string }) => {
-        return this.createToolResponse('vote', playerName);
+        return this.createToolResponse('vote', playerName, [GamePhase.Voting]);
       },
     });
 
     return tools;
   }
 
-  async generate(messages: Message[], allAgentNames: string[]): Promise<{ text: string; toolCalls?: Array<{ tool: string; args: Record<string, any> }> }> {
+  async generate(messages: Message[], allAgentNames: string[], gamePhase: GamePhase): Promise<{ text: string; toolCalls?: Array<{ tool: string; args: Record<string, any> }> }> {
+    this.currentGamePhase = gamePhase;
     const modelMessages = this.convertMessages(messages);
     const result = await this.agent.generate({ messages: modelMessages });
     

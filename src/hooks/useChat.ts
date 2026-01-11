@@ -116,7 +116,7 @@ export function useChat() {
     }
   }, [addMessage]);
 
-  const callAgentInternal = useCallback(async (agent: ChatAgent): Promise<AgentGenerateResult> => {
+  const callAgentInternal = useCallback(async (agent: ChatAgent, phaseOverride?: GamePhase): Promise<AgentGenerateResult> => {
     setIsLoading(true);
     setActiveAgentId(agent.id);
 
@@ -124,7 +124,8 @@ export function useChat() {
       const startTime = performance.now();
       const allMessages = messagesRef.current;
       const allAgentNames = agents.map(a => a.name);
-      const result = await agent.generate(allMessages, allAgentNames);
+      const currentPhase = phaseOverride ?? gamePhase;
+      const result = await agent.generate(allMessages, allAgentNames, currentPhase);
       const endTime = performance.now();
       const executionTime = (endTime - startTime) / 1000; // convert to seconds
       return { ...result, executionTime };
@@ -135,7 +136,7 @@ export function useChat() {
       setIsLoading(false);
       setActiveAgentId(null);
     }
-  }, [agents]);
+  }, [agents, gamePhase]);
 
   const askAgent = useCallback(async (agent: ChatAgent) => {
     if (gameState !== GameState.Started) {
@@ -476,7 +477,7 @@ export function useChat() {
         mafia: true,
       });
       try {
-        const result = await callAgentInternal(finalMafiaWord);
+        const result = await callAgentInternal(finalMafiaWord, GamePhase.Actions);
         addMessage({
           sender: MessageSender.Agent,
           agentId: finalMafiaWord.id,
@@ -505,7 +506,7 @@ export function useChat() {
         pm: true,
       });
       try {
-        const result = await callAgentInternal(detective);
+        const result = await callAgentInternal(detective, GamePhase.Actions);
         addMessage({
           sender: MessageSender.Agent,
           agentId: detective.id,
@@ -534,7 +535,7 @@ export function useChat() {
         pm: true,
       });
       try {
-        const result = await callAgentInternal(doctor);
+        const result = await callAgentInternal(doctor, GamePhase.Actions);
         addMessage({
           sender: MessageSender.Agent,
           agentId: doctor.id,
@@ -569,7 +570,7 @@ export function useChat() {
 
     for (const agent of shuffledAgents) {
       try {
-        const result = await callAgentInternal(agent);
+        const result = await callAgentInternal(agent, GamePhase.Voting);
         addMessage({
           sender: MessageSender.Agent,
           agentId: agent.id,
