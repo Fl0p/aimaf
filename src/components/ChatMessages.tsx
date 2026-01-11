@@ -28,13 +28,15 @@ export function ChatMessages({ messages, agents }: ChatMessagesProps) {
           Send a message to add some initial story or context
         </div>
       ) : (
-        messages.map((message) => (
-          <MessageBubble
-            key={message.id}
-            message={message}
-            agentColor={getAgentColor(message.agentId)}
-          />
-        ))
+        messages
+          .filter((message) => !message.toolResultFor)
+          .map((message) => (
+            <MessageBubble
+              key={message.id}
+              message={message}
+              agentColor={getAgentColor(message.agentId)}
+            />
+          ))
       )}
       <div ref={messagesEndRef} />
     </div>
