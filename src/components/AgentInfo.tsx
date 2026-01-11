@@ -7,6 +7,28 @@ interface AgentInfoProps {
   onClose: () => void;
 }
 
+const formatContent = (content: any): string => {
+  if (typeof content === 'string') {
+    return content;
+  }
+  if (Array.isArray(content)) {
+    return content.map(part => {
+      if (part.type === 'text') {
+        return part.text;
+      }
+      if (part.type === 'tool-call') {
+        return `[TOOL [${part.toolName}] CALL]: ${JSON.stringify(part.input)}`;
+      }
+      if (part.type === 'tool-result') {
+        const output = part.output?.value || JSON.stringify(part.output);
+        return `[TOOL [${part.toolName}] RESULT]: ${output}`;
+      }
+      return JSON.stringify(part);
+    }).join('\n');
+  }
+  return JSON.stringify(content);
+};
+
 export const AgentInfo: React.FC<AgentInfoProps> = ({
   agent,
   messages,
@@ -27,7 +49,7 @@ export const AgentInfo: React.FC<AgentInfoProps> = ({
           {messages.map((msg: any, idx: number) => (
             <div key={idx} className="agent-popup-message">
               <div className="agent-popup-message-role">{msg.role}</div>
-              <div className="agent-popup-message-content">{msg.content}</div>
+              <div className="agent-popup-message-content">{formatContent(msg.content)}</div>
             </div>
           ))}
         </div>

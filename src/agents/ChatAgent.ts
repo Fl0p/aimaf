@@ -1,8 +1,8 @@
 import { ToolLoopAgent, ModelMessage, ToolSet, tool } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { AgentConfig, Message, MafiaRole, MessageSender, GamePhase } from '../types';
+import { AgentConfig, Message, MafiaRole, MessageSender, GamePhase, ToolCallData } from '../types';
 import { MafiaPrompts } from './MafiaPrompts';
-import { isMafia } from '../utils/helpers';
+import { isMafia, generateId } from '../utils/helpers';
 import { z } from 'zod';
 
 export class ChatAgent {
@@ -89,12 +89,12 @@ export class ChatAgent {
     return tools;
   }
 
-  async generate(messages: Message[], allAgentNames: string[], gamePhase: GamePhase): Promise<{ text: string; toolCalls?: Array<{ tool: string; args: Record<string, any> }> }> {
+  async generate(messages: Message[], allAgentNames: string[], gamePhase: GamePhase): Promise<{ text: string; toolCalls?: ToolCallData[] }> {
     this.currentGamePhase = gamePhase;
     const modelMessages = this.convertMessages(messages);
     const result = await this.agent.generate({ messages: modelMessages });
     
-    const toolCalls: Array<{ tool: string; args: Record<string, any> }> = [];
+    const toolCalls: ToolCallData[] = [];
     
     // Extract tool calls from the result steps
     if (result.steps) {
@@ -103,6 +103,7 @@ export class ChatAgent {
         for (const part of step.content) {
           if (part.type === 'tool-call') {
             toolCalls.push({
+              id: part.toolCallId || generateId(),
               tool: part.toolName,
               args: part.input as Record<string, any>,
             });
@@ -159,12 +160,52 @@ export class ChatAgent {
       if (m.pm && m.agentId !== this.id) {
         continue;
       }
-      //filter empty messages
+
+      const isOwnMessage = m.sender === MessageSender.Agent && m.agentId === this.id;
+
+      // Handle tool result messages - convert to 'tool' role message
+      if (m.toolResultFor && m.agentId === this.id) {
+        result.push({
+          role: 'tool',
+          content: [{
+            type: 'tool-result',
+            toolCallId: m.toolResultFor.callId,
+            toolName: m.toolResultFor.toolName,
+            output: { type: 'text', value: m.content },
+          }],
+        });
+        continue;
+      }
+
+      // Skip empty messages (but allow tool result messages above)
       if (m.content.trim() === '') {
         continue;
       }
 
-      const isOwnMessage = m.sender === MessageSender.Agent && m.agentId === this.id;
+      // Handle own messages with tool calls - use structured format
+      if (isOwnMessage && m.toolCalls && m.toolCalls.length > 0) {
+        const contentParts: Array<{ type: 'text'; text: string } | { type: 'tool-call'; toolCallId: string; toolName: string; input: unknown }> = [];
+        
+        if (m.content.trim()) {
+          contentParts.push({ type: 'text', text: m.content });
+        }
+        
+        for (const tc of m.toolCalls) {
+          contentParts.push({
+            type: 'tool-call',
+            toolCallId: tc.id,
+            toolName: tc.tool,
+            input: tc.args,
+          });
+        }
+        
+        result.push({
+          role: 'assistant',
+          content: contentParts,
+        });
+        continue;
+      }
+
       const role = isOwnMessage ? 'assistant' : 'user';
 
       let senderName: string;

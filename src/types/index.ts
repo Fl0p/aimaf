@@ -26,6 +26,12 @@ export enum GamePhase {
   Voting = 'voting',   // all players vote + results
 }
 
+export interface ToolCallData {
+  id: string;
+  tool: string;
+  args: Record<string, any>;
+}
+
 export interface Message {
   sender: MessageSender;
   agentId?: string;
@@ -35,6 +41,11 @@ export interface Message {
   mafia?: boolean; // if true, the message is visible to the mafia only
   tool?: string; // if set, the message is a tool call
   toolArgs?: Record<string, any>; // arguments for the tool call
+  toolCalls?: ToolCallData[]; // tool calls made by agent
+  toolResultFor?: { // if set, this message is a tool result
+    callId: string;
+    toolName: string;
+  };
   executionTime?: number; // execution time in seconds
 }
 
@@ -60,5 +71,5 @@ export interface OpenRouterModel {
 export interface AgentGenerateResult {
   text: string;
   executionTime: number;
-  toolCalls?: Array<{ tool: string; args: Record<string, any> }>;
+  toolCalls?: ToolCallData[];
 }

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Message, ChatMessage, AgentConfig, MessageSender, GameState, GamePhase, MafiaRole, AgentGenerateResult } from '../types';
+import { Message, ChatMessage, AgentConfig, MessageSender, GameState, GamePhase, MafiaRole, AgentGenerateResult, ToolCallData } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 import { formatGameStatus, formatPlayersList } from '../utils/gameStatus';
 import { generateId, isMafia } from '../utils/helpers';
@@ -43,8 +43,10 @@ export function useChat() {
     });
   }, [addMessage]);
 
-  const handleToolCall = useCallback((agent: ChatAgent, toolName: string, args: Record<string, any>) => {
+  const handleToolCall = useCallback((agent: ChatAgent, toolCall: ToolCallData): string => {
+    const { id: callId, tool: toolName, args } = toolCall;
     const playerName = args.playerName as string;
+    let resultContent = '';
     
     switch (toolName) {
       case 'kill': {
@@ -55,6 +57,7 @@ export function useChat() {
           targetName: playerName,
         });
         
+        resultContent = `Your request to kill @${playerName} has been accepted. The result will be known when the day comes.`;
         addMessage({
           sender: MessageSender.System,
           content: `@${agent.name} wants to kill @${playerName}.`,
@@ -72,6 +75,7 @@ export function useChat() {
           targetName: playerName,
         });
         
+        resultContent = `Your request to check @${playerName} has been accepted. The result will be known when the day comes.`;
         addMessage({
           sender: MessageSender.System,
           content: `@${agent.name} wants to check @${playerName}.`,
@@ -90,6 +94,7 @@ export function useChat() {
           targetName: playerName,
         });
         
+        resultContent = `Your request to save @${playerName} has been accepted. The result will be known when the day comes.`;
         addMessage({
           sender: MessageSender.System,
           content: `@${agent.name} wants to save @${playerName}.`,
@@ -107,6 +112,7 @@ export function useChat() {
           targetName: playerName,
         });
         
+        resultContent = `Your vote to eliminate @${playerName} has been recorded.`;
         addMessage({
           sender: MessageSender.System,
           content: `@${agent.name} votes to eliminate @${playerName}.`,
@@ -115,6 +121,17 @@ export function useChat() {
         break;
       }
     }
+    
+    // Add tool result message for agent's history
+    addMessage({
+      sender: MessageSender.System,
+      agentId: agent.id,
+      content: resultContent,
+      pm: true,
+      toolResultFor: { callId, toolName },
+    });
+    
+    return resultContent;
   }, [addMessage]);
 
   const callAgentInternal = useCallback(async (agent: ChatAgent, phaseOverride?: GamePhase): Promise<AgentGenerateResult> => {
@@ -164,12 +181,13 @@ export function useChat() {
         agentName: agent.name,
         content: result.text,
         executionTime: result.executionTime,
+        toolCalls: result.toolCalls,
       });
 
       // Handle tool calls
       if (result.toolCalls) {
         for (const toolCall of result.toolCalls) {
-          handleToolCall(agent, toolCall.tool, toolCall.args);
+          handleToolCall(agent, toolCall);
         }
       }
     } catch (error) {
@@ -408,11 +426,12 @@ export function useChat() {
           agentName: agent.name,
           content: result.text,
           executionTime: result.executionTime,
+          toolCalls: result.toolCalls,
         });
 
         if (result.toolCalls) {
           for (const toolCall of result.toolCalls) {
-            handleToolCall(agent, toolCall.tool, toolCall.args);
+            handleToolCall(agent, toolCall);
           }
         }
       } catch (error) {
@@ -438,11 +457,12 @@ export function useChat() {
           agentName: agent.name,
           content: result.text,
           executionTime: result.executionTime,
+          toolCalls: result.toolCalls,
         });
 
         if (result.toolCalls) {
           for (const toolCall of result.toolCalls) {
-            handleToolCall(agent, toolCall.tool, toolCall.args);
+            handleToolCall(agent, toolCall);
           }
         }
       } catch (error) {
@@ -520,11 +540,12 @@ export function useChat() {
           content: result.text,
           mafia: true,
           executionTime: result.executionTime,
+          toolCalls: result.toolCalls,
         });
 
         if (result.toolCalls) {
           for (const toolCall of result.toolCalls) {
-            handleToolCall(finalMafiaWord, toolCall.tool, toolCall.args);
+            handleToolCall(finalMafiaWord, toolCall);
           }
         }
       } catch (error) {
@@ -549,11 +570,12 @@ export function useChat() {
           content: result.text,
           pm: true,
           executionTime: result.executionTime,
+          toolCalls: result.toolCalls,
         });
 
         if (result.toolCalls) {
           for (const toolCall of result.toolCalls) {
-            handleToolCall(detective, toolCall.tool, toolCall.args);
+            handleToolCall(detective, toolCall);
           }
         }
       } catch (error) {
@@ -578,11 +600,12 @@ export function useChat() {
           content: result.text,
           pm: true,
           executionTime: result.executionTime,
+          toolCalls: result.toolCalls,
         });
 
         if (result.toolCalls) {
           for (const toolCall of result.toolCalls) {
-            handleToolCall(doctor, toolCall.tool, toolCall.args);
+            handleToolCall(doctor, toolCall);
           }
         }
       } catch (error) {
@@ -612,11 +635,12 @@ export function useChat() {
           agentName: agent.name,
           content: result.text,
           executionTime: result.executionTime,
+          toolCalls: result.toolCalls,
         });
 
         if (result.toolCalls) {
           for (const toolCall of result.toolCalls) {
-            handleToolCall(agent, toolCall.tool, toolCall.args);
+            handleToolCall(agent, toolCall);
           }
         }
       } catch (error) {
