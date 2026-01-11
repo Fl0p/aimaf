@@ -200,13 +200,6 @@ export function useChat() {
     setAgents((prev) => prev.filter((a) => a.id !== agentId));
   }, []);
 
-  const gameStatusMessage = useCallback(() => {
-    addMessage({
-      sender: MessageSender.System,
-      content: formatGameStatus(agents),
-    });
-  }, [agents, addMessage]);
-
   const killAgent = useCallback((agentId: string) => {
     const agent = agents.find((a) => a.id === agentId);
     if (agent) {
@@ -217,9 +210,13 @@ export function useChat() {
         sender: MessageSender.System,
         content: `@${agent.name} (${agent.mafiaRole}) has been killed by @Moderator!`,
       });
-      gameStatusMessage();
+      const result = formatGameStatus(agents);
+      addMessage({
+        sender: MessageSender.System,
+        content: result.message,
+      });
     }
-  }, [agents, addMessage, gameStatusMessage]);
+  }, [agents, addMessage]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -277,6 +274,14 @@ export function useChat() {
 
   }, [addMessage, agents, welcomeMafiaMessage, welcomeDetectiveMessage, welcomeDoctorMessage]);
 
+  const endGame = useCallback(() => {
+    setGameState(GameState.Ended);
+    addMessage({
+      sender: MessageSender.System,
+      content: 'Game has ended!',
+    });
+  }, [addMessage]);
+
   const processNightResults = useCallback(() => {
     const results = nightActionsRef.current.processActions(agents);
     
@@ -322,8 +327,17 @@ export function useChat() {
     // Clear night actions for next night
     nightActionsRef.current.clear();
     
-    gameStatusMessage();
-  }, [agents, addMessage, gameStatusMessage]);
+    const result = formatGameStatus(agents);
+    addMessage({
+      sender: MessageSender.System,
+      content: result.message,
+    });
+
+    // Check for victory
+    if (result.gameStatus.mafiaWin || result.gameStatus.civiliansWin) {
+      endGame();
+    }
+  }, [agents, addMessage, endGame]);
 
   const processVotingResults = useCallback(() => {
     const results = dayActionsRef.current.processVotes(agents);
@@ -349,8 +363,18 @@ export function useChat() {
     }
 
     dayActionsRef.current.clear();
-    gameStatusMessage();
-  }, [agents, addMessage, gameStatusMessage]);
+
+    const result = formatGameStatus(agents);
+    addMessage({
+      sender: MessageSender.System,
+      content: result.message,
+    });
+
+    // Check for victory
+    if (result.gameStatus.mafiaWin || result.gameStatus.civiliansWin) {
+      endGame();
+    }
+  }, [agents, addMessage, endGame]);
 
   const runDay = useCallback(async () => {
     const aliveAgents = agents.filter((a) => !a.isDead);

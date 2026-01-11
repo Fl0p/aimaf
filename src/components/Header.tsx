@@ -17,10 +17,10 @@ export function Header({ onNext, gamePhase, showBack, disableSettings, disableNe
       {!showBack && (
         <div className="header-center">
           {gamePhase && (
-            <span className="header-phase">{gamePhase.toUpperCase()}</span>
+            <span className="header-phase">Current Phase: {gamePhase.toUpperCase()}</span>
           )}
           <button 
-            className="header-btn" 
+            className="header-btn header-next-btn" 
             onClick={onNext}
             disabled={disableNext}
           >

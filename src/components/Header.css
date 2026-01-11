@@ -97,11 +97,13 @@
 }
 
 .header-phase {
-  padding: 6px 14px;
-  background-color: #673ab7;
   color: white;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.5px;
+  font-weight: 500;
+  font-size: 14px;
+  min-width: 200px;
+  text-align: right;
+}
+
+.header-next-btn {
+  min-width: 120px;
 }

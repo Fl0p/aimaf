@@ -36,7 +36,7 @@ export function Home() {
         onNext={nextPhase}
         gamePhase={gamePhase}
         disableSettings={!isInitial}
-        disableNext={isLoading}
+        disableNext={isLoading || agents.length < 5}
       />
       <div className="home">
         <AgentPanel

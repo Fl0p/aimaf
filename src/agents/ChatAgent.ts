@@ -116,18 +116,10 @@ export class ChatAgent {
   }
 
   private fixNames(text: string, allAgentNames: string[]): string {
-    // Step 1: Remove own name at the start of the message
-    // Remove "@Name" or "Name:" or "Name " or "[Name]" at the start
-    const patterns = [
-      new RegExp(`^@${this.name}\\s*:?\\s*`, 'i'),
-      new RegExp(`^${this.name}\\s*:\\s*`, 'i'),
-      new RegExp(`^\\[${this.name}\\]\\s*:?\\s*`, 'i'),
-    ];
-
-    let filtered = text;
-    for (const pattern of patterns) {
-      filtered = filtered.replace(pattern, '');
-    }
+    // Step 1: Remove own name at the start of the message if any
+    // Remove "@Name", "Name:", "[Name]", "@[Name]", "@[Name]:", "[@Name]:" etc at the start
+    const namePattern = new RegExp(`^(?:@?\\[?@?${this.name}\\]?\\s*:?\\s*)`, 'i');
+    let filtered = text.replace(namePattern, '');
 
     // Step 2: Add @ before all agent names that don't have it
     for (const name of allAgentNames) {
@@ -157,9 +149,12 @@ export class ChatAgent {
       if (m.mafia && !isMafia(this.mafiaRole)) {
         continue;
       }
-
       // Filter private messages: only the recipient can see them
       if (m.pm && m.agentId !== this.id) {
+        continue;
+      }
+      //filter empty messages
+      if (m.content.trim() === '') {
         continue;
       }
 
@@ -168,11 +163,11 @@ export class ChatAgent {
 
       let senderName: string;
       if (m.sender === MessageSender.System) {
-        senderName = '[System]';
+        senderName = '[System]:';
       } else if (m.sender === MessageSender.Moderator) {
-        senderName = '[Moderator]';
+        senderName = '[Moderator]:';
       } else {
-        senderName = `@${m.agentName || 'Unknown'}`;
+        senderName = m.agentName ? `[@${m.agentName}]:` : '[Unknown]:';
       }
 
       result.push({
@@ -181,8 +176,6 @@ export class ChatAgent {
       });
     }
 
-    console.log(` My name is @${this.name} and my role is ${this.mafiaRole}`);
-    console.log(` My messages are: ${JSON.stringify(result, null, 2)}`);
     return result;
   }
 
