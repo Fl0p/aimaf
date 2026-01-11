@@ -6,6 +6,8 @@ Client-only React SPA that runs a small Mafia-style social deduction game betwee
 
 **Live Demo:** https://fl0p.github.io/aimaf/
 
+**Video Demo:** [aimaf.mov](aimaf.mov)
+
 ## How to play
 
 1. Go to **Settings** and set an OpenRouter API key (stored locally in your browser).
