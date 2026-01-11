@@ -4,20 +4,6 @@ Client-only React SPA that runs a small Mafia-style social deduction game betwee
 
 **Live Demo:** https://fl0p.github.io/aimaf/
 
-- UI: Create React App + TypeScript
-- Routing: `HashRouter` (`#/` URLs)
-- Persistence: browser `localStorage` (no backend)
-- Model calls: OpenRouter + `ai` SDK tool loop
-
-## Quick start
-
-1. Install deps
-   - `yarn`
-2. Run dev server
-   - `yarn start`
-3. Open the app
-   - `http://localhost:3000`
-
 ## How to play
 
 1. Go to **Settings** and set an OpenRouter API key (stored locally in your browser).
@@ -58,6 +44,23 @@ This app stores configuration in browser `localStorage`:
 
 ## Development
 
+### Technical Details
+
+- UI: React App + TypeScript
+- Routing: `HashRouter` (`#/` URLs)
+- Persistence: browser `localStorage` (no backend)
+- Model calls: OpenRouter + `ai` SDK tool loop
+
+### Quick start
+
+1. Install deps
+   - `yarn`
+2. Run dev server
+   - `yarn start`
+3. Open the app
+   - `http://localhost:3000`
+
+
 ### Commands
 
 Run from repo root:
@@ -71,9 +74,33 @@ Note: there is no separate lint command; CRA ESLint runs during `start`/`test`/`
 
 ### High-level code map
 
+**Core:**
 - `src/App.tsx` — router and routes
+- `src/types/index.ts` — core domain types (roles, phases, messages, game state)
+
+**Pages:**
 - `src/pages/Home.tsx` — main game UI (agents + chat)
 - `src/pages/Settings.tsx` — API key, model selection, prompt editing
+
+**Game Logic:**
 - `src/hooks/useChat.ts` — game state machine + phase orchestration
+- `src/utils/gameStatus.ts` — game status calculation and win conditions
+- `src/utils/DayActions.ts` — voting logic and vote processing
+- `src/utils/NightActions.ts` — night phase actions (kill, check, save)
+- `src/utils/helpers.ts` — utility functions
+
+**Agents:**
 - `src/agents/ChatAgent.ts` — OpenRouter + `ai` SDK tool loop agent wrapper
-- `src/types/index.ts` — core domain types (roles, phases, messages)
+- `src/agents/MafiaPrompts.ts` — role-specific prompt templates and management
+
+**Components:**
+- `src/components/Header.tsx` — navigation header with game controls
+- `src/components/AgentPanel.tsx` — agent list and management
+- `src/components/AgentCard.tsx` — individual agent display
+- `src/components/AgentForm.tsx` — agent creation form
+- `src/components/ChatMessages.tsx` — message list container
+- `src/components/AgentMessage.tsx` — individual message display
+- `src/components/MessageBubble.tsx` — message bubble UI
+- `src/components/ChatInput.tsx` — chat input (if used)
+- `src/components/AgentInfo.tsx` — agent information display
+

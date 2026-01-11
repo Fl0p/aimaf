@@ -123,3 +123,22 @@
   width: 16px;
   height: 16px;
 }
+
+.header-github {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.header-github:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.header-github svg {
+  display: block;
+}
