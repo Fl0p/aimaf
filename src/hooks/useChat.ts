@@ -16,6 +16,7 @@ export function useChat() {
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<GameState>(GameState.Initial);
   const [gamePhase, setGamePhase] = useState<GamePhase>(GamePhase.Welcome);
+  const [autoPlay, setAutoPlay] = useState(false);
   const nightActionsRef = useRef(new NightActions());
   const dayActionsRef = useRef(new DayActions());
 
@@ -676,6 +677,17 @@ export function useChat() {
     setAgents([...agents]);
   }, [clearMessages, agents]);
 
+  // Auto-play effect: trigger nextPhase when not loading
+  useEffect(() => {
+    if (autoPlay && !isLoading && gameState === GameState.Started) {
+      const timer = setTimeout(() => {
+        nextPhase();
+      }, 1000); // 1 second delay after activity finishes
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoPlay, isLoading, gameState, nextPhase]);
+
   return {
     messages,
     agents,
@@ -683,6 +695,8 @@ export function useChat() {
     activeAgentId,
     gameState,
     gamePhase,
+    autoPlay,
+    setAutoPlay,
     sendMessage,
     askAgent,
     addAgent,

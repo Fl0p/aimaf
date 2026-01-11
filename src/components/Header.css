@@ -107,3 +107,19 @@
 .header-next-btn {
   min-width: 120px;
 }
+
+.header-autoplay {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.header-autoplay input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}

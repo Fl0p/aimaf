@@ -10,9 +10,11 @@ interface HeaderProps {
   showBack?: boolean;
   disableSettings?: boolean;
   disableNext?: boolean;
+  autoPlay?: boolean;
+  onAutoPlayChange?: (enabled: boolean) => void;
 }
 
-export function Header({ onNext, onRestart, gamePhase, gameState, showBack, disableSettings, disableNext }: HeaderProps) {
+export function Header({ onNext, onRestart, gamePhase, gameState, showBack, disableSettings, disableNext, autoPlay, onAutoPlayChange }: HeaderProps) {
   const isGameEnded = gameState === GameState.Ended;
   
   return (
@@ -39,6 +41,14 @@ export function Header({ onNext, onRestart, gamePhase, gameState, showBack, disa
               >
                 Next Phase
               </button>
+              <label className="header-autoplay">
+                <input 
+                  type="checkbox" 
+                  checked={autoPlay}
+                  onChange={(e) => onAutoPlayChange?.(e.target.checked)}
+                />
+                <span>Auto Play</span>
+              </label>
             </>
           )}
         </div>

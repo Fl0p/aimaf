@@ -16,6 +16,8 @@ export function Home() {
     activeAgentId,
     gameState,
     gamePhase,
+    autoPlay,
+    setAutoPlay,
     sendMessage,
     askAgent,
     addAgent,
@@ -41,6 +43,8 @@ export function Home() {
         gameState={gameState}
         disableSettings={!isInitial}
         disableNext={isLoading || agents.length < 5 || isEnded}
+        autoPlay={autoPlay}
+        onAutoPlayChange={setAutoPlay}
       />
       <div className="home">
         <AgentPanel
