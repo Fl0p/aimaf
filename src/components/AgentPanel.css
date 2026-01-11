@@ -10,8 +10,9 @@
 }
 
 .agent-panel-header {
-  padding: 16px;
+  padding: 6px 12px;
   font-weight: bold;
+  font-size: 14px;
   border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;

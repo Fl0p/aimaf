@@ -130,7 +130,7 @@ export function AgentPanel({
   return (
     <div className={`agent-panel ${isOpen ? 'agent-panel-open' : ''}`}>
       <div className="agent-panel-header">
-        <span>Agents</span>
+        <span>Agents ({agents.length})</span>
         {onClose && (
           <button className="agent-panel-close" onClick={onClose} aria-label="Close panel">
             ✕
