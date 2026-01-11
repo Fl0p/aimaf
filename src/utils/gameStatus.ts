@@ -13,6 +13,7 @@ export interface GameStatus {
   dons: number;
   aliveMafia: number;
   aliveCivilians: number;
+  justStarted: boolean;
   mafiaWin: boolean;
   civiliansWin: boolean;
 }
@@ -29,6 +30,7 @@ export function getGameStatus(agents: ChatAgent[]): GameStatus {
     dons: 0,
     aliveMafia: 0,
     aliveCivilians: 0,
+    justStarted: false,
     mafiaWin: false,
     civiliansWin: false,
   };
@@ -66,10 +68,16 @@ export function getGameStatus(agents: ChatAgent[]): GameStatus {
     }
   });
 
-  // Check win conditions
-  status.mafiaWin = status.aliveMafia >= status.aliveCivilians && status.aliveMafia > 0;
-  status.civiliansWin = status.aliveMafia === 0 && status.aliveCivilians > 0;
-
+  // Check if game has just started
+  if (status.alive === agents.length) {
+    status.justStarted = true;
+  } else {
+    status.justStarted = false;
+    // Check win conditions
+    status.mafiaWin = status.aliveMafia >= status.aliveCivilians && status.aliveMafia > 0;
+    status.civiliansWin = status.aliveMafia === 0 && status.aliveCivilians > 0;
+  }
+  
   return status;
 }
 
@@ -104,30 +112,39 @@ export function formatGameStatus(agents: ChatAgent[]): GameStatusResult {
         aliveCivilians: 0,
         mafiaWin: false,
         civiliansWin: false,
+        justStarted: false,
       },
     };
   }
 
   const status = getGameStatus(agents);
   const lines: string[] = [];
+
+  // Check start of the game
+  if (status.justStarted) {
+    const roleStats: string[] = [];
+    if (status.mafia > 0) roleStats.push(`${MafiaRole.Mafia}: ${status.mafia}`);
+    if (status.dons > 0) roleStats.push(`${MafiaRole.Don}: ${status.dons}`);
+    if (status.civilians > 0) roleStats.push(`${MafiaRole.Civilian}: ${status.civilians}`);
+    if (status.detectives > 0) roleStats.push(`${MafiaRole.Detective}: ${status.detectives}`);
+    if (status.doctors > 0) roleStats.push(`${MafiaRole.Doctor}: ${status.doctors}`);
+    lines.push(`Players by role: ${roleStats.join(', ')}`);
+  }
   
+
   // Alive in the game (count by role)
-  if (status.alive > 0) {
+  if (status.alive > 0 && !status.justStarted) {
     const roleStrings: string[] = [];
     if (status.aliveMafia > 0) roleStrings.push(`${MafiaRole.Mafia}: ${status.aliveMafia}`);
     if (status.aliveCivilians > 0) roleStrings.push(`${MafiaRole.Civilian}: ${status.aliveCivilians}`);
     lines.push(`Alive in the game: ${roleStrings.join(', ')}`);
-  } else {
-    lines.push('Alive in the game: none');
   }
   
   // Dead list (names and roles)
   const deadAgents = agents.filter(agent => agent.isDead);
-  if (deadAgents.length > 0) {
+  if (deadAgents.length > 0 && !status.justStarted) {
     const deadList = deadAgents.map(agent => `@${agent.name} - ${agent.mafiaRole}`).join(', ');
     lines.push(`Dead list: ${deadList}`);
-  } else {
-    lines.push('Dead list: none');
   }
 
   // Check for victory

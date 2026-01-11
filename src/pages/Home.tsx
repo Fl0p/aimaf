@@ -4,6 +4,7 @@ import { Header } from '../components/Header';
 import { AgentPanel } from '../components/AgentPanel';
 import { ChatMessages } from '../components/ChatMessages';
 import { ChatInput } from '../components/ChatInput';
+import { AgentInfo } from '../components/AgentInfo';
 import { GameState } from '../types';
 import { ChatAgent } from '../agents/ChatAgent';
 import './Home.css';
@@ -65,22 +66,11 @@ export function Home() {
       </div>
 
       {selectedAgent && (
-        <div className="agent-popup-overlay" onClick={() => setSelectedAgent(null)}>
-          <div className="agent-popup" onClick={(e) => e.stopPropagation()}>
-            <div className="agent-popup-header">
-              <h3>Messages for {selectedAgent.name}</h3>
-              <button onClick={() => setSelectedAgent(null)}>×</button>
-            </div>
-            <div className="agent-popup-content">
-              {visibleMessages.map((msg: any, idx: number) => (
-                <div key={idx} className="agent-popup-message">
-                  <div className="agent-popup-message-role">{msg.role}</div>
-                  <div className="agent-popup-message-content">{msg.content}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <AgentInfo
+          agent={selectedAgent}
+          messages={visibleMessages}
+          onClose={() => setSelectedAgent(null)}
+        />
       )}
     </>
   );

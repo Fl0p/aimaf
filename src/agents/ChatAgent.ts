@@ -10,16 +10,18 @@ export class ChatAgent {
   private agent: ToolLoopAgent<never, ToolSet>;
   private _isDead: boolean = false;
   private currentGamePhase: GamePhase = GamePhase.Welcome;
+  private instructions: string;
 
   constructor(config: AgentConfig, apiKey: string) {
     this.config = config;
+    this.instructions = MafiaPrompts.getSystemPrompt(this.config.mafiaRole, this.config.systemPrompt);
     const openrouter = createOpenRouter({ apiKey });
 
     const tools = this.createTools();
 
     this.agent = new ToolLoopAgent({
       model: openrouter(this.config.model),
-      instructions: MafiaPrompts.getSystemPrompt(this.config.mafiaRole, this.config.systemPrompt),
+      instructions: this.instructions,
       tools,
     });
   }
@@ -139,6 +141,10 @@ export class ChatAgent {
   private convertMessages(messages: Message[]): ModelMessage[] {
     const result: ModelMessage[] = [
       {
+        role: 'user',
+        content: `[SYSTEM]: Welcome to the Mafia game!`,
+      },
+      {
         role: 'assistant',
         content: `My name is @${this.name} and my role is ${this.mafiaRole}.`,
       },
@@ -163,16 +169,18 @@ export class ChatAgent {
 
       let senderName: string;
       if (m.sender === MessageSender.System) {
-        senderName = '[System]:';
+        senderName = '[SYSTEM]: ';
       } else if (m.sender === MessageSender.Moderator) {
-        senderName = '[Moderator]:';
+        senderName = '[MODERATOR]: ';
+      } else if (isOwnMessage){
+        senderName = ``; // do not add name to own messages
       } else {
-        senderName = m.agentName ? `[@${m.agentName}]:` : '[Unknown]:';
+        senderName = m.agentName ? `[@${m.agentName}]: ` : '[UNKNOWN]: ';
       }
 
       result.push({
         role,
-        content: `${senderName} ${m.content}`,
+        content: `${senderName}${m.content}`,
       });
     }
 
@@ -197,6 +205,10 @@ export class ChatAgent {
 
   get systemPrompt(): string {
     return this.config.systemPrompt;
+  }
+
+  get fullInstructions(): string {
+    return this.instructions;
   }
 
   get mafiaRole(): MafiaRole {
