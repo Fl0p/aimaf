@@ -8,18 +8,18 @@ export interface NightAction {
 }
 
 export class NightActions {
-  private actions: NightAction[] = [];
+  private actions: Record<string, NightAction> = {};
 
   addAction(action: NightAction): void {
-    this.actions.push(action);
+    this.actions[action.agentId] = action;
   }
 
   getActions(): NightAction[] {
-    return [...this.actions];
+    return Object.values(this.actions);
   }
 
   clear(): void {
-    this.actions = [];
+    this.actions = {};
   }
 
   // Process all night actions and return results
@@ -28,9 +28,10 @@ export class NightActions {
     checks: Array<{ detective: ChatAgent; target: ChatAgent; isMafia: boolean }>;
     saved: ChatAgent | null;
   } {
-    const killActions = this.actions.filter(a => a.actionType === 'kill');
-    const checkActions = this.actions.filter(a => a.actionType === 'check');
-    const saveActions = this.actions.filter(a => a.actionType === 'save');
+    const allActions = Object.values(this.actions);
+    const killActions = allActions.filter(a => a.actionType === 'kill');
+    const checkActions = allActions.filter(a => a.actionType === 'check');
+    const saveActions = allActions.filter(a => a.actionType === 'save');
 
     // Determine who to kill (majority vote or last action)
     let killedAgent: ChatAgent | null = null;
