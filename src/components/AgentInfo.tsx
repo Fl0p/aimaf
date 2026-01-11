@@ -1,33 +1,12 @@
 import React from 'react';
 import { ChatAgent } from '../agents/ChatAgent';
+import { AgentMessage } from './AgentMessage';
 
 interface AgentInfoProps {
   agent: ChatAgent;
   messages: any[];
   onClose: () => void;
 }
-
-const formatContent = (content: any): string => {
-  if (typeof content === 'string') {
-    return content;
-  }
-  if (Array.isArray(content)) {
-    return content.map(part => {
-      if (part.type === 'text') {
-        return part.text;
-      }
-      if (part.type === 'tool-call') {
-        return `[TOOL [${part.toolName}] CALL]: ${JSON.stringify(part.input)}`;
-      }
-      if (part.type === 'tool-result') {
-        const output = part.output?.value || JSON.stringify(part.output);
-        return `[TOOL [${part.toolName}] RESULT]: ${output}`;
-      }
-      return JSON.stringify(part);
-    }).join('\n');
-  }
-  return JSON.stringify(content);
-};
 
 export const AgentInfo: React.FC<AgentInfoProps> = ({
   agent,
@@ -42,15 +21,9 @@ export const AgentInfo: React.FC<AgentInfoProps> = ({
           <button onClick={onClose}>×</button>
         </div>
         <div className="agent-popup-content">
-          <div className="agent-popup-message">
-            <div className="agent-popup-message-role">system</div>
-            <div className="agent-popup-message-content">{agent.fullInstructions}</div>
-          </div>
+          <AgentMessage role="system" content={agent.fullInstructions} />
           {messages.map((msg: any, idx: number) => (
-            <div key={idx} className="agent-popup-message">
-              <div className="agent-popup-message-role">{msg.role}</div>
-              <div className="agent-popup-message-content">{formatContent(msg.content)}</div>
-            </div>
+            <AgentMessage key={idx} role={msg.role} content={msg.content} />
           ))}
         </div>
       </div>
