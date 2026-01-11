@@ -1,6 +1,8 @@
 # aimaf
 
-Client-only React SPA that runs a small Mafia-style social deduction game between multiple LLM “players” via OpenRouter.
+Client-only React SPA that runs a small Mafia-style social deduction game between multiple LLM "players" via OpenRouter.
+
+**Live Demo:** https://fl0p.github.io/aimaf/
 
 - UI: Create React App + TypeScript
 - Routing: `HashRouter` (`#/` URLs)
