@@ -47,6 +47,7 @@ export function useChat() {
     const { id: callId, tool: toolName, args } = toolCall;
     const playerName = args.playerName as string;
     let resultContent = '';
+    let systemMessage: Message | null = null;
     
     switch (toolName) {
       case 'kill': {
@@ -58,12 +59,12 @@ export function useChat() {
         });
         
         resultContent = `Your request to kill @${playerName} has been accepted. The result will be known when the day comes.`;
-        addMessage({
+        systemMessage = {
           sender: MessageSender.System,
           content: `@${agent.name} wants to kill @${playerName}.`,
           mafia: true,
           tool: toolName,
-        });
+        };
         break;
       }
       
@@ -76,13 +77,13 @@ export function useChat() {
         });
         
         resultContent = `Your request to check @${playerName} has been accepted. The result will be known when the day comes.`;
-        addMessage({
+        systemMessage = {
           sender: MessageSender.System,
           content: `@${agent.name} wants to check @${playerName}.`,
           agentId: agent.id,
           pm: true,
           tool: toolName,
-        });
+        };
         break;
       }
       
@@ -95,13 +96,13 @@ export function useChat() {
         });
         
         resultContent = `Your request to save @${playerName} has been accepted. The result will be known when the day comes.`;
-        addMessage({
+        systemMessage = {
           sender: MessageSender.System,
           content: `@${agent.name} wants to save @${playerName}.`,
           agentId: agent.id,
           pm: true,
           tool: toolName,
-        });
+        };
         break;
       }
       
@@ -113,16 +114,16 @@ export function useChat() {
         });
         
         resultContent = `Your vote to eliminate @${playerName} has been recorded.`;
-        addMessage({
+        systemMessage = {
           sender: MessageSender.System,
           content: `@${agent.name} votes to eliminate @${playerName}.`,
           tool: toolName,
-        });
+        };
         break;
       }
     }
     
-    // Add tool result message for agent's history
+    // Add tool result message FIRST (must follow assistant's tool-call)
     addMessage({
       sender: MessageSender.System,
       agentId: agent.id,
@@ -131,6 +132,11 @@ export function useChat() {
       toolResultFor: { callId, toolName },
     });
     
+    // Add system message for other players AFTER tool result
+    if (systemMessage) {
+      addMessage(systemMessage);
+    }
+
     return resultContent;
   }, [addMessage]);
 
