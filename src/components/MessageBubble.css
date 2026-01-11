@@ -6,7 +6,7 @@
 
 .message-user {
   margin-left: auto;
-  background: #e3f2fd;
+  background: #e3fdeb;
   padding: 12px 16px;
   border-radius: 16px 16px 4px 16px;
 }
@@ -27,47 +27,17 @@
   text-align: center;
 }
 
-.message-sender-name {
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
 .message-content {
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .message-private {
-  background-color: #999999;
+  background-color: #d9d6e2;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .message-private-system {
-  background-color: #bbbbbb;
+  background-color: #e0e3e3;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.message-with-tool {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.message-tool-badge {
-  flex-shrink: 0;
-  background: #1976d2;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
-}
-
-.message-main-content {
-  flex: 1;
-  min-width: 0;
 }

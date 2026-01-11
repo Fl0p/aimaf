@@ -1,43 +1,26 @@
 import { Message, MessageSender } from '../types';
+import { MessageHeader } from './MessageHeader';
 import './MessageBubble.css';
 
 interface MessageBubbleProps {
   message: Message;
   agentColor: string;
+  agentModel?: string;
 }
 
-export function MessageBubble({ message, agentColor }: MessageBubbleProps) {
+export function MessageBubble({ message, agentColor, agentModel }: MessageBubbleProps) {
   const isSystem = message.sender === MessageSender.System;
   const isModerator = message.sender === MessageSender.Moderator;
   const isAgent = message.sender === MessageSender.Agent;
-  const isPrivate = message.mafia === true || message.pm === true;
+  const isPrivateSystem = message.pm === true || message.mafia === true;
 
   return (
     <div
-      className={`message ${isSystem ? 'message-system' : isModerator ? 'message-user' : 'message-agent'} ${isPrivate ? (isSystem ? 'message-private-system' : 'message-private') : ''} ${message.tool ? 'message-with-tool' : ''}`}
+      className={`message ${isSystem ? 'message-system' : isModerator ? 'message-user' : 'message-agent'} ${isPrivateSystem ? (isSystem ? 'message-private-system' : 'message-private') : ''}`}
       style={isAgent ? { borderLeftColor: agentColor } : undefined}
     >
-      {message.tool && (
-        <div className="message-tool-badge">
-          {message.tool}
-        </div>
-      )}
-      <div className="message-main-content">
-        {!isSystem && (
-          <div
-            className="message-sender-name"
-            style={{ color: isModerator ? '#1976d2' : agentColor }}
-          >
-            {isModerator ? 'Moderator' : message.agentName}
-            {message.executionTime !== undefined && (
-              <span style={{ opacity: 0.9, fontWeight: 'normal', marginLeft: '8px' }}>
-                thought for {message.executionTime.toFixed(1)}s
-              </span>
-            )}
-          </div>
-        )}
-        <div className="message-content">{message.content}</div>
-      </div>
+      <MessageHeader message={message} agentColor={agentColor} agentModel={agentModel} />
+      <div className="message-content">{message.content}</div>
     </div>
   );
 }

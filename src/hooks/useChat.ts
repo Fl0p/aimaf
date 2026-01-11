@@ -230,6 +230,7 @@ export function useChat() {
         sender: MessageSender.System,
         content: welcomeMessage,
         agentId: detective.id,
+        agentName: detective.name,
         pm: true,
       });
     }
@@ -243,6 +244,7 @@ export function useChat() {
         sender: MessageSender.System,
         content: welcomeMessage,
         agentId: doctor.id,
+        agentName: doctor.name,
         pm: true,
       });
     }
@@ -285,6 +287,7 @@ export function useChat() {
         sender: MessageSender.System,
         content: `@${check.detective.name} checked @${check.target.name}. Result: ${check.isMafia ? 'MAFIA' : 'NOT MAFIA'}`,
         agentId: check.detective.id,
+        agentName: check.detective.name,
         pm: true,
       });
     });
@@ -297,6 +300,7 @@ export function useChat() {
           sender: MessageSender.System,
           content: `@${doctor.name} You saved @${results.saved.name} tonight.`,
           agentId: doctor.id,
+          agentName: doctor.name,
           pm: true,
         });
       }
@@ -528,6 +532,7 @@ export function useChat() {
         sender: MessageSender.System,
         content: `@${detective.name}, use the [check] tool to investigate a player.`,
         agentId: detective.id,
+        agentName: detective.name,
         pm: true,
       });
       try {
@@ -558,6 +563,7 @@ export function useChat() {
         sender: MessageSender.System,
         content: `@${doctor.name}, use the [save] tool to save a player.`,
         agentId: doctor.id,
+        agentName: doctor.name,
         pm: true,
       });
       try {

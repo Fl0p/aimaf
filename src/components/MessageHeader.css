@@ -1,0 +1,40 @@
+.message-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  min-height: 20px;
+}
+
+
+.message-header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.message-tool-badge {
+  flex-shrink: 0;
+  background: #1976d2;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: auto;
+}
+
+.message-sender-name {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+}
+
+.message-sender-name-system {
+  color: rgba(0, 0, 0, 0.6);
+  text-align: left;
+}
