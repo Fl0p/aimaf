@@ -105,6 +105,8 @@ Note: there is no separate lint command; CRA ESLint runs during `start`/`test`/`
 - `src/components/ChatMessages.tsx` — message list container
 - `src/components/AgentMessage.tsx` — individual message display
 - `src/components/MessageBubble.tsx` — message bubble UI
+- `src/components/MessageHeader.tsx` — message header with sender info
 - `src/components/ChatInput.tsx` — chat input (if used)
 - `src/components/AgentInfo.tsx` — agent information display
+- `src/components/GitHubLogo.tsx` — GitHub logo link component
 
