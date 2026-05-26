@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { OpenRouterModel, MafiaRole } from '../types';
 import { DEFAULT_PROMPTS } from '../agents/MafiaPrompts';
+import { OPENROUTER_API_BASE_URL } from '../constants';
 import './Settings.css';
 
 const API_KEY_STORAGE = 'openrouter_api_key';
@@ -61,7 +62,7 @@ export function Settings() {
     setTestResult(null);
 
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch(`${OPENROUTER_API_BASE_URL}/chat/completions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
@@ -90,7 +91,7 @@ export function Settings() {
   const handleLoadModels = async () => {
     setLoadingModels(true);
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/models');
+      const response = await fetch(`${OPENROUTER_API_BASE_URL}/models`);
       if (response.ok) {
         const data = await response.json();
         const models = data.data.map((m: { id: string; name: string }) => ({
