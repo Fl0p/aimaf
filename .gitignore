@@ -163,3 +163,8 @@ yarn-error.log*
 
 # ignore gitpmoji directory
 .gitpmoji
+
+# MCP tooling working dirs (local artifacts — never commit)
+.playwright-mcp/
+.markdown_vault_mcp/
+**/.markdown_vault_mcp/
